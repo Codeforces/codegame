@@ -1,0 +1,8 @@
+en=view speed
+ru=скорость
+
+en=Save game log
+ru=Сохранить лог игры
+
+en=volume
+ru=громкость

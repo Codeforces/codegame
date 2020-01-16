@@ -1,0 +1,50 @@
+en=Game options
+ru=Настройки игры
+
+en=START
+ru=СТАРТ
+
+en=empty
+ru=пустой
+
+en=Does nothing
+ru=Ничего не делает
+
+en=Player
+ru=Игрок
+
+en=Waiting for players
+ru=Ожидание игроков
+
+en=save config
+ru=сохранить конфигурацию
+
+en=Create a game or
+ru=Создать игру или
+
+en=watch a replay
+ru=пересмотреть игру
+
+en=Select file to replay
+ru=Выберите файл для просмотра
+
+en=Waiting for connection
+ru=Ожидание подключения
+
+en=Player connected
+ru=Игрок подключился
+
+en=Failed to listen specified port
+ru=Не удалось использовать данный порт
+
+en=Port
+ru=Порт
+
+en=or
+ru=или
+
+en=repeat a game
+ru=повторить игру
+
+en=Select file to repeat
+ru=Выберите файл для повтора

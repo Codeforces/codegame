@@ -1,0 +1,298 @@
+use super::*;
+
+mod player;
+
+pub use player::*;
+
+struct RendererWrapper<R>(Rc<RefCell<R>>);
+
+impl<R> Clone for RendererWrapper<R> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+
+impl<G: Game, R: Renderer<G>> Renderer<G> for RendererWrapper<R> {
+    type ExtraData = R::ExtraData;
+    type Preferences = R::Preferences;
+    fn default_tps(&self) -> f64 {
+        self.0.borrow().default_tps()
+    }
+    fn update(&mut self, delta_time: f64) {
+        self.0.borrow_mut().update(delta_time);
+    }
+    fn draw(
+        &mut self,
+        game: &G,
+        extra_data: &Self::ExtraData,
+        custom_data: &HashMap<usize, Vec<G::CustomData>>,
+        framebuffer: &mut ugli::Framebuffer,
+    ) {
+        self.0
+            .borrow_mut()
+            .draw(game, extra_data, custom_data, framebuffer);
+    }
+    fn process_event(&mut self, event: &G::Event) {
+        self.0.borrow_mut().process_event(event);
+    }
+    fn handle_event(&mut self, event: &geng::Event) {
+        self.0.borrow_mut().handle_event(event);
+    }
+}
+
+pub trait DeepConfig<T>: ui::Config<T> {
+    fn transition(&mut self) -> Option<Box<dyn geng::State>>;
+}
+
+struct Data<G: Game, R: Renderer<G>> {
+    geng: Rc<Geng>,
+    preferences: Rc<RefCell<AutoSave<AppPreferences<R::Preferences>>>>,
+    theme: Rc<ui::Theme>,
+    game_options_config: Box<dyn DeepConfig<G::OptionsPreset>>,
+    save_button: ui::TextButton,
+    replay_button: ui::TextButton,
+    start_button: ui::TextButton,
+    repeat_button: ui::TextButton,
+    player_configs: Vec<PlayerConfigWidget<G>>,
+    renderer: RendererWrapper<R>,
+    replay_requested: bool,
+    repeat_requested: bool,
+    ready: bool,
+}
+
+impl<G: Game, R: Renderer<G>> Data<G, R> {
+    pub fn ui<'a>(&'a mut self) -> impl ui::Widget + 'a {
+        use ui::*;
+        let options = self.full_options();
+        let mut ready = true;
+        for config in &mut self.player_configs {
+            // Doing for to assert calling .ready()
+            if !config.ready() {
+                ready = false;
+            }
+        }
+        let play_section = if ready {
+            let play = self.start_button.ui(Box::new({
+                let ready = &mut self.ready;
+                move || *ready = true
+            }));
+            if cfg!(target_arch = "wasm32") {
+                Box::new(play) as Box<dyn Widget>
+            } else {
+                Box::new(ui::row![
+                    play.align(vec2(0.5, 0.5)),
+                    text(translate("or"), &self.theme.font, 32.0, Color::GRAY)
+                        .align(vec2(0.5, 0.5))
+                        .padding_left(32.0)
+                        .padding_right(32.0),
+                    self.repeat_button
+                        .ui(Box::new({
+                            let repeat_requested = &mut self.repeat_requested;
+                            move || *repeat_requested = true
+                        }))
+                        .align(vec2(0.5, 0.5)),
+                ]) as Box<dyn Widget>
+            }
+        } else {
+            Box::new(text(
+                translate("Waiting for players"),
+                &self.theme.font,
+                32.0,
+                Color::GRAY,
+            )) as Box<dyn Widget>
+        };
+        let mut column = ui::column![
+            row(self
+                .player_configs
+                .iter_mut()
+                .map(|config| Box::new(config.ui()) as _)
+                .collect())
+            .align(vec2(0.5, 0.5)),
+            text(
+                translate("Game options"),
+                &self.theme.font,
+                32.0,
+                Color::GRAY
+            )
+            .padding_top(32.0)
+            .align(vec2(0.5, 0.5)),
+            self.game_options_config.ui().align(vec2(0.5, 0.5)),
+            play_section.padding_top(32.0).align(vec2(0.5, 0.5)),
+        ];
+        #[cfg(not(target_arch = "wasm32"))]
+        let column = ui::column![
+            row![
+                text(
+                    translate("Create a game or"),
+                    &self.theme.font,
+                    32.0,
+                    Color::GRAY
+                )
+                .padding_right(32.0),
+                self.replay_button.ui(Box::new({
+                    let replay_requested = &mut self.replay_requested;
+                    move || *replay_requested = true
+                })),
+            ]
+            .align(vec2(0.5, 0.5))
+            .padding_bottom(32.0),
+            column,
+            self.save_button
+                .ui(Box::new(move || {
+                    save_file(translate("save config"), "config.json", move |writer| {
+                        options.save(writer)
+                    })
+                    .expect("Failed to save config");
+                }))
+                .padding_top(32.0)
+                .align(vec2(0.5, 0.5)),
+        ];
+        column.align(vec2(0.5, 0.5))
+    }
+    fn transition(&mut self) -> Option<geng::Transition> {
+        if self.ready {
+            self.ready = false;
+            let players: Vec<Box<dyn Player<G>>> = self
+                .player_configs
+                .iter_mut()
+                .map(|config| config.create())
+                .collect();
+            return Some(geng::Transition::Push(Box::new(GameScreen::new(
+                &self.geng,
+                GameProcessor::new(None, self.game_options_config.get().into(), players),
+                self.renderer.clone(),
+                self.preferences.clone(),
+            ))));
+        }
+        #[cfg(not(target_arch = "wasm32"))]
+        {
+            if self.replay_requested {
+                self.replay_requested = false;
+                if let Some(path) = select_file(translate("Select file to replay")) {
+                    return Some(geng::Transition::Push(Box::new(GameScreen::replay(
+                        &self.geng,
+                        futures::executor::block_on(History::load(path.to_str().unwrap())),
+                        self.renderer.clone(),
+                        self.preferences.clone(),
+                    ))));
+                }
+            }
+            if self.repeat_requested {
+                self.repeat_requested = false;
+                if let Some(path) = select_file(translate("Select file to repeat")) {
+                    let players: Vec<Box<dyn Player<G>>> = self
+                        .player_configs
+                        .iter_mut()
+                        .map(|config| config.create())
+                        .collect();
+                    return Some(geng::Transition::Push(Box::new(GameScreen::new(
+                        &self.geng,
+                        GameProcessor::<G>::repeat(
+                            std::fs::File::open(path).expect("Failed to open game log file"),
+                            players,
+                        ),
+                        self.renderer.clone(),
+                        self.preferences.clone(),
+                    ))));
+                }
+            }
+        }
+        None
+    }
+    fn full_options(&self) -> FullOptions<G> {
+        FullOptions {
+            seed: None,
+            options_preset: self.game_options_config.get(),
+            players: self
+                .player_configs
+                .iter()
+                .map(|config| config.to_options())
+                .collect(),
+        }
+    }
+}
+
+pub struct ConfigScreen<G: Game, R: Renderer<G>> {
+    geng: Rc<Geng>,
+    data: Data<G, R>,
+    ui_controller: ui::Controller,
+}
+
+impl<G: Game, R: Renderer<G>> ConfigScreen<G, R> {
+    pub fn new(
+        geng: &Rc<Geng>,
+        theme: &Rc<ui::Theme>,
+        game_options_config: Box<dyn DeepConfig<G::OptionsPreset>>,
+        player_config_options: Vec<Box<dyn Fn() -> Box<dyn PlayerConfig<G>>>>,
+        player_config_defaults: Vec<usize>,
+        renderer: R,
+        preferences: Rc<RefCell<AutoSave<AppPreferences<R::Preferences>>>>,
+    ) -> Self {
+        add_translations(include_str!("translations.txt"));
+        let renderer = RendererWrapper(Rc::new(RefCell::new(renderer)));
+        let player_config_options = Rc::new(player_config_options);
+        let mut player_configs = Vec::with_capacity(player_config_defaults.len());
+        for (index, default) in player_config_defaults.into_iter().enumerate() {
+            player_configs.push(PlayerConfigWidget::new(
+                geng,
+                theme,
+                &player_config_options,
+                default,
+                format!("{} {}", translate("Player"), index + 1),
+            ));
+        }
+        Self {
+            geng: geng.clone(),
+            data: Data {
+                geng: geng.clone(),
+                theme: theme.clone(),
+                replay_button: ui::TextButton::new(
+                    geng,
+                    theme,
+                    translate("watch a replay").to_owned(),
+                    32.0,
+                ),
+                save_button: ui::TextButton::new(
+                    geng,
+                    theme,
+                    translate("save config").to_owned(),
+                    24.0,
+                ),
+                start_button: ui::TextButton::new(geng, theme, translate("START").to_owned(), 32.0),
+                repeat_button: ui::TextButton::new(
+                    geng,
+                    theme,
+                    translate("repeat a game").to_owned(),
+                    32.0,
+                ),
+                game_options_config,
+                player_configs,
+                renderer,
+                replay_requested: false,
+                repeat_requested: false,
+                ready: false,
+                preferences,
+            },
+            ui_controller: ui::Controller::new(),
+        }
+    }
+}
+
+impl<G: Game, R: Renderer<G>> geng::State for ConfigScreen<G, R> {
+    fn update(&mut self, delta_time: f64) {
+        self.ui_controller.update(self.data.ui(), delta_time);
+    }
+    fn handle_event(&mut self, event: geng::Event) {
+        self.ui_controller.handle_event(self.data.ui(), event);
+    }
+    fn draw(&mut self, framebuffer: &mut ugli::Framebuffer) {
+        ugli::clear(framebuffer, Some(Color::BLACK), None);
+        self.ui_controller.draw(self.data.ui(), framebuffer);
+    }
+    fn transition(&mut self) -> Option<geng::Transition> {
+        if let Some(transition) = self.data.game_options_config.transition() {
+            return Some(geng::Transition::Push(transition));
+        }
+        self.data.transition()
+    }
+}
