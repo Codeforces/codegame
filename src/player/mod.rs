@@ -12,12 +12,6 @@ pub enum PlayerError {
     IOError(#[error(cause)] std::io::Error),
 }
 
-impl From<std::io::Error> for PlayerError {
-    fn from(error: std::io::Error) -> Self {
-        Self::IOError(error)
-    }
-}
-
 pub trait Player<G: Game>: Send {
     fn get_action(
         &mut self,
