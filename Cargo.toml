@@ -12,8 +12,8 @@ default = ["rendering"]
 rendering = ["geng"]
 
 [dependencies]
-batbox = "0.1"
-geng = { version = "0.1", optional = true }
+batbox = "0.2"
+geng = { version = "0.2", optional = true }
 serde_json = "1"
 serde = "1"
 
