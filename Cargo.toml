@@ -1,6 +1,6 @@
 [package]
 name = "codegame"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["kuviman <kuviman@gmail.com>"]
 description = "CodeGame framework"
 license = "MIT"
@@ -12,8 +12,8 @@ default = ["rendering"]
 rendering = ["geng"]
 
 [dependencies]
-batbox = "0.2"
-geng = { version = "0.2", optional = true }
+batbox = "0.3"
+geng = { version = "0.3", optional = true }
 serde_json = "1"
 serde = "1"
 

@@ -52,7 +52,7 @@ pub struct PlayerResult {
     comment: Option<String>,
 }
 
-pub trait Game: Diff {
+pub trait Game: Diff + Schematic {
     type Options: Serialize + for<'de> Deserialize<'de> + Sync + Send + Clone + 'static;
     type OptionsPreset: Serialize
         + for<'de> Deserialize<'de>
@@ -68,12 +68,40 @@ pub trait Game: Diff {
         + Send
         + Clone
         + 'static;
-    type Action: Serialize + for<'de> Deserialize<'de> + Trans + Sync + Send + Clone + 'static;
-    type Event: Serialize + for<'de> Deserialize<'de> + Trans + Sync + Send + Clone + 'static;
-    type PlayerView: Serialize + for<'de> Deserialize<'de> + Trans + Sync + Send + Clone + 'static;
+    type Action: Serialize
+        + for<'de> Deserialize<'de>
+        + Trans
+        + Schematic
+        + Sync
+        + Send
+        + Clone
+        + 'static;
+    type Event: Serialize
+        + for<'de> Deserialize<'de>
+        + Trans
+        + Schematic
+        + Sync
+        + Send
+        + Clone
+        + 'static;
+    type PlayerView: Serialize
+        + for<'de> Deserialize<'de>
+        + Trans
+        + Schematic
+        + Sync
+        + Send
+        + Clone
+        + 'static;
     type Results: Serialize + for<'de> Deserialize<'de> + Sync + Send + Clone + 'static;
     type PlayerExtraData;
-    type CustomData: Serialize + for<'de> Deserialize<'de> + Trans + Sync + Send + Clone + 'static;
+    type CustomData: Serialize
+        + for<'de> Deserialize<'de>
+        + Trans
+        + Schematic
+        + Sync
+        + Send
+        + Clone
+        + 'static;
     fn init(rng: &mut dyn rand::RngCore, player_count: usize, options: Self::Options) -> Self;
     fn player_view(&self, player_index: usize) -> Self::PlayerView;
     fn process_turn(
