@@ -102,11 +102,11 @@ pub trait Game: Diff + Schematic {
         + Send
         + Clone
         + 'static;
-    fn init(rng: &mut dyn rand::RngCore, player_count: usize, options: Self::Options) -> Self;
+    fn init(rng: &mut dyn RngCore, player_count: usize, options: Self::Options) -> Self;
     fn player_view(&self, player_index: usize) -> Self::PlayerView;
     fn process_turn(
         &mut self,
-        rng: &mut dyn rand::RngCore,
+        rng: &mut dyn RngCore,
         actions: HashMap<usize, Self::Action>,
     ) -> Vec<Self::Event>;
     fn finished(&self) -> bool;

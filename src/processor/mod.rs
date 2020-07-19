@@ -7,7 +7,7 @@ pub use background::*;
 enum State<G: Game> {
     Game {
         game: G,
-        rng: Box<dyn rand::RngCore + Send>,
+        rng: Box<dyn RngCore + Send>,
     },
     Repeater {
         game: G,
