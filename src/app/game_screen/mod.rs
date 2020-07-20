@@ -174,7 +174,7 @@ where
                         self.need_close = true;
                         true
                     }
-                    #[cfg(not(any(target_arch = "asmjs", target_arch = "wasm32")))]
+                    #[cfg(not(target_arch = "wasm32"))]
                     geng::Key::S if self.geng.window().is_key_pressed(geng::Key::LCtrl) => {
                         save_file(translate("Save game log"), "game.log", |writer| {
                             self.history.save(writer)
