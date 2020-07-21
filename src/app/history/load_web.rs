@@ -5,18 +5,22 @@ impl<G: Game, R: Renderer<G>> History<G, R> {
         fn load<G: Game, R: Renderer<G>>(
             path: &str,
         ) -> Result<impl Future<Output = History<G, R>>, Box<dyn std::error::Error>> {
-            let xhr = stdweb::web::XmlHttpRequest::new();
-            xhr.open("GET", path)?;
-            xhr.set_response_type(stdweb::web::XhrResponseType::ArrayBuffer)?;
-            xhr.send()?;
+            let xhr = web_sys::XmlHttpRequest::new().unwrap();
+            xhr.open("GET", path).unwrap();
+            xhr.set_response_type(web_sys::XmlHttpRequestResponseType::Arraybuffer);
+            xhr.send().unwrap();
             let (sender, receiver) = futures::channel::oneshot::channel();
-            use stdweb::web::IEventTarget;
             let loaded_handler = {
                 let xhr = xhr.clone();
                 let f = move || -> Result<(), Box<dyn std::error::Error>> {
-                    let data: stdweb::web::ArrayBuffer =
-                        stdweb::unstable::TryFrom::try_from(xhr.raw_response()).unwrap();
-                    let data: Vec<u8> = data.into();
+                    let data = js_sys::Uint8Array::new(
+                        xhr.response()
+                            .unwrap()
+                            .dyn_into::<js_sys::ArrayBuffer>()
+                            .unwrap()
+                            .as_ref(),
+                    )
+                    .to_vec();
                     let mut reader = data.as_slice();
                     let initial_state = G::read_from(&mut reader)?;
                     let history = History::new(&initial_state);
@@ -35,13 +39,18 @@ impl<G: Game, R: Renderer<G>> History<G, R> {
                     f().expect("Error while reading replay");
                 }
             };
-            xhr.add_event_listener({
+            let handler = {
                 let xhr = xhr.clone();
                 let mut loaded_handler = Some(loaded_handler);
-                move |event: stdweb::web::event::ProgressLoadEvent| {
+                move |event: web_sys::ProgressEvent| {
                     loaded_handler.take().unwrap()();
                 }
-            });
+            };
+            let handler = wasm_bindgen::closure::Closure::wrap(
+                Box::new(handler) as Box<dyn FnMut(web_sys::ProgressEvent)>
+            );
+            xhr.add_event_listener_with_callback("progress", handler.as_ref().unchecked_ref());
+            handler.forget(); // TODO: not forget
             Ok(receiver.map(|result| result.expect("Failed to load replay")))
         }
         load::<G, R>(path).expect("Failed to load replay")
