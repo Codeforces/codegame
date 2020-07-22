@@ -1,9 +1,8 @@
 use super::*;
 
-type TcpPlayerFuture<G: Game> = dyn Future<Output = Result<TcpPlayer<G>, std::io::Error>>;
+type TcpPlayerFuture<G> = dyn Future<Output = Result<TcpPlayer<G>, std::io::Error>>;
 
 pub struct TcpPlayerConfig<G: Game> {
-    geng: Rc<Geng>,
     theme: Rc<ui::Theme>,
     options: TcpPlayerOptions,
     port_buttons: [ui::TextButton; 2],
@@ -13,7 +12,6 @@ pub struct TcpPlayerConfig<G: Game> {
 impl<G: Game> TcpPlayerConfig<G> {
     pub fn new(geng: &Rc<Geng>, theme: &Rc<ui::Theme>) -> Self {
         Self {
-            geng: geng.clone(),
             theme: theme.clone(),
             options: TcpPlayerOptions {
                 host: None,

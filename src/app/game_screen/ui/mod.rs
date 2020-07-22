@@ -13,9 +13,7 @@ use timeline::*;
 use view_speed::*;
 use volume::*;
 
-const UI_SMALLER_SIZE: f64 = 24.0;
 const UI_SIZE: f64 = 32.0;
-const UI_BIGGER_SIZE: f64 = 48.0;
 const UI_PADDING: f64 = 8.0;
 
 fn create_texture(context: &Rc<Geng>, f: impl FnOnce(&mut ugli::Framebuffer)) -> ugli::Texture {
@@ -37,7 +35,6 @@ fn create_texture(context: &Rc<Geng>, f: impl FnOnce(&mut ugli::Framebuffer)) ->
 }
 
 pub struct UI {
-    geng: Rc<Geng>,
     play_stop_button: PlayStopButton,
     fullscreen_button: FullscreenButton,
     timeline: Timeline,
@@ -55,7 +52,6 @@ impl UI {
         let theme = Rc::new(ui::Theme::default(geng));
         let theme = &theme;
         Self {
-            geng: geng.clone(),
             play_stop_button: PlayStopButton::new(geng, theme, paused),
             fullscreen_button: FullscreenButton::new(geng, theme),
             timeline: Timeline::new(geng, theme),

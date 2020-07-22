@@ -101,7 +101,7 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
                 Color::GRAY,
             )) as Box<dyn Widget>
         };
-        let mut column = ui::column![
+        let column = ui::column![
             row(self
                 .player_configs
                 .iter_mut()
@@ -213,7 +213,6 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
 }
 
 pub struct ConfigScreen<G: Game, R: Renderer<G>> {
-    geng: Rc<Geng>,
     data: Data<G, R>,
     ui_controller: ui::Controller,
 }
@@ -242,7 +241,6 @@ impl<G: Game, R: Renderer<G>> ConfigScreen<G, R> {
             ));
         }
         Self {
-            geng: geng.clone(),
             data: Data {
                 geng: geng.clone(),
                 theme: theme.clone(),

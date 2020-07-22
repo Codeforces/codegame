@@ -14,12 +14,7 @@ impl TimeLabel {
             time_text: String::new(),
         }
     }
-    fn ui<'a>(
-        &'a mut self,
-        tick_time: f64,
-        max_time: f64,
-        ticks_per_second: f64,
-    ) -> impl ui::Widget + 'a {
+    fn ui<'a>(&'a mut self, tick_time: f64, ticks_per_second: f64) -> impl ui::Widget + 'a {
         use ui::*;
         self.tick_text = format!("{}", tick_time as usize);
         let time = tick_time / ticks_per_second;
@@ -75,7 +70,7 @@ impl Timeline {
         let time = &mut self.time;
         row![
             self.label
-                .ui(*time, self.max_time, self.ticks_per_second)
+                .ui(*time, self.ticks_per_second)
                 .uniform_padding(UI_PADDING),
             self.slider
                 .ui(

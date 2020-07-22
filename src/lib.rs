@@ -128,6 +128,7 @@ pub struct ServerMessage<G: Game> {
 pub trait RendererExtraData<G: Game>: Diff {
     fn new(game: &G) -> Self;
     fn update(&mut self, events: &[G::Event], game: &G) {
+        #![allow(unused_variables)]
         *self = Self::new(game);
     }
 }
@@ -137,7 +138,9 @@ pub trait Renderer<G: Game>: 'static {
     type ExtraData: RendererExtraData<G>;
     type Preferences: Debug + Clone + Default + Serialize + for<'de> Deserialize<'de> + 'static;
     fn default_tps(&self) -> f64;
-    fn update(&mut self, delta_time: f64) {}
+    fn update(&mut self, delta_time: f64) {
+        #![allow(unused_variables)]
+    }
     fn draw(
         &mut self,
         game: &G,
@@ -145,8 +148,12 @@ pub trait Renderer<G: Game>: 'static {
         custom_data: &HashMap<usize, Vec<G::CustomData>>,
         framebuffer: &mut ugli::Framebuffer,
     );
-    fn process_event(&mut self, event: &G::Event) {}
-    fn handle_event(&mut self, event: &geng::Event) {}
+    fn process_event(&mut self, event: &G::Event) {
+        #![allow(unused_variables)]
+    }
+    fn handle_event(&mut self, event: &geng::Event) {
+        #![allow(unused_variables)]
+    }
 }
 
 pub fn save_replay_tick_handler<G: Game, T: Write + Send + 'static>(

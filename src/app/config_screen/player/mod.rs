@@ -15,7 +15,6 @@ pub trait PlayerConfig<G: Game> {
 }
 
 pub(crate) struct PlayerConfigWidget<G: Game> {
-    geng: Rc<Geng>,
     theme: Rc<ui::Theme>,
     options: Rc<Vec<Box<dyn Fn() -> Box<dyn PlayerConfig<G>>>>>,
     current_config: Box<dyn PlayerConfig<G>>,
@@ -36,7 +35,6 @@ impl<G: Game> PlayerConfigWidget<G> {
         let current_config = options[default_option]();
         let button_text = current_config.name().to_owned();
         Self {
-            geng: geng.clone(),
             theme: theme.clone(),
             options: options.clone(),
             current_config,
