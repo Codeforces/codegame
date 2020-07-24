@@ -24,13 +24,14 @@ impl<G: Game, R: Renderer<G>> Renderer<G> for RendererWrapper<R> {
     fn draw(
         &mut self,
         game: &G,
+        last_events: &[G::Event],
         extra_data: &Self::ExtraData,
         custom_data: &HashMap<usize, Vec<G::CustomData>>,
         framebuffer: &mut ugli::Framebuffer,
     ) {
         self.0
             .borrow_mut()
-            .draw(game, extra_data, custom_data, framebuffer);
+            .draw(game, last_events, extra_data, custom_data, framebuffer);
     }
     fn process_event(&mut self, event: &G::Event) {
         self.0.borrow_mut().process_event(event);

@@ -144,6 +144,7 @@ pub trait Renderer<G: Game>: 'static {
     fn draw(
         &mut self,
         game: &G,
+        last_events: &[G::Event],
         extra_data: &Self::ExtraData,
         custom_data: &HashMap<usize, Vec<G::CustomData>>,
         framebuffer: &mut ugli::Framebuffer,

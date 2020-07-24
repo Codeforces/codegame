@@ -141,9 +141,9 @@ where
         self.renderer.update(delta_time);
     }
     fn draw(&mut self, framebuffer: &mut ugli::Framebuffer) {
-        let (game, extra_data, custom_data) = self.history.current_state();
+        let (game, last_events, extra_data, custom_data) = self.history.current_state();
         self.renderer
-            .draw(game, extra_data, custom_data, framebuffer);
+            .draw(game, last_events, extra_data, custom_data, framebuffer);
         self.ui_controller
             .draw(self.ui.ui(self.renderer.default_tps()), framebuffer);
     }

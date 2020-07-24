@@ -9,6 +9,7 @@ mod save;
 #[derive(Serialize)]
 struct State<G: Game, R: Renderer<G>> {
     game: G,
+    last_events: Vec<G::Event>,
     extra_data: R::ExtraData,
 }
 
@@ -29,6 +30,7 @@ impl<G: Game, R: Renderer<G>> Clone for State<G, R> {
     fn clone(&self) -> Self {
         Self {
             game: self.game.clone(),
+            last_events: self.last_events.clone(),
             extra_data: self.extra_data.clone(),
         }
     }
@@ -98,6 +100,7 @@ impl<G: Game, R: Renderer<G>> History<G, R> {
         let initial_extra_data = R::ExtraData::new(initial_game_state);
         let initial_state = State {
             game: initial_game_state.clone(),
+            last_events: Vec::new(),
             extra_data: initial_extra_data,
         };
         Self {
@@ -115,9 +118,17 @@ impl<G: Game, R: Renderer<G>> History<G, R> {
             current_tick: 0,
         }
     }
-    pub fn current_state(&self) -> (&G, &R::ExtraData, &HashMap<usize, Vec<G::CustomData>>) {
+    pub fn current_state(
+        &self,
+    ) -> (
+        &G,
+        &Vec<G::Event>,
+        &R::ExtraData,
+        &HashMap<usize, Vec<G::CustomData>>,
+    ) {
         (
             &self.current_state.game,
+            &self.current_state.last_events,
             &self.current_state.extra_data,
             &self.current_custom_data,
         )
@@ -160,6 +171,11 @@ impl<G: Game, R: Renderer<G>> History<G, R> {
                 }
             }
         }
+        self.current_state.last_events = if tick == 0 {
+            Vec::new()
+        } else {
+            shared_state.events[tick - 1].clone()
+        };
         if tick != self.current_tick {
             self.current_tick_timer = Timer::new();
         }
