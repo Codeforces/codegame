@@ -10,7 +10,7 @@ mod volume;
 use fullscreen_button::*;
 use play_stop_button::*;
 use timeline::*;
-use view_speed::*;
+pub use view_speed::*;
 use volume::*;
 
 const UI_SIZE: f64 = 32.0;
@@ -46,7 +46,7 @@ impl UI {
     pub fn new(
         geng: &Rc<Geng>,
         paused: &Rc<Cell<bool>>,
-        view_speed: &Rc<Cell<(f64, f64)>>,
+        view_speed_modifier: &Rc<Cell<f64>>,
         volume: &Rc<Cell<f64>>,
     ) -> Self {
         let theme = Rc::new(ui::Theme::default(geng));
@@ -55,7 +55,7 @@ impl UI {
             play_stop_button: PlayStopButton::new(geng, theme, paused),
             fullscreen_button: FullscreenButton::new(geng, theme),
             timeline: Timeline::new(geng, theme),
-            view_speed: ViewSpeedControl::new(geng, theme, view_speed),
+            view_speed: ViewSpeedControl::new(geng, theme, view_speed_modifier),
             volume: VolumeControl::new(geng, theme, volume),
         }
     }
@@ -68,12 +68,12 @@ impl UI {
         self.timeline.set_time(time, max_time, ticks_per_second);
     }
 
-    pub fn ui<'a>(&'a mut self) -> impl ui::Widget + 'a {
+    pub fn ui<'a>(&'a mut self, default_tps: f64) -> impl ui::Widget + 'a {
         use ui::*;
         geng::ui::row![
             self.play_stop_button.ui(),
             self.timeline.ui(),
-            self.view_speed.ui(),
+            self.view_speed.ui(default_tps),
             self.volume.ui(),
             self.fullscreen_button.ui(),
         ]

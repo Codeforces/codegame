@@ -9,7 +9,7 @@ pub struct GameScreen<G: Game, R: Renderer<G>> {
     history: History<G, R>,
     current_tick: f64,
     paused: Rc<Cell<bool>>,
-    view_speed: Rc<Cell<(f64, f64)>>,
+    view_speed_modifier: Rc<Cell<f64>>,
     volume: Rc<Cell<f64>>,
     ui: ui::UI,
     ui_controller: geng::ui::Controller,
@@ -19,7 +19,7 @@ pub struct GameScreen<G: Game, R: Renderer<G>> {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppPreferences<T> {
-    pub view_speed: f64,
+    pub view_speed_modifier: f64,
     pub volume: f64,
     pub renderer: T,
 }
@@ -28,7 +28,7 @@ impl<T: Default> Default for AppPreferences<T> {
     fn default() -> Self {
         Self {
             volume: 0.5,
-            view_speed: 1.0,
+            view_speed_modifier: 0.0,
             renderer: default(),
         }
     }
@@ -44,10 +44,7 @@ impl<G: Game, R: Renderer<G>> GameScreen<G, R> {
     ) -> Self {
         add_translations(include_str!("translations.txt"));
         let paused = Rc::new(Cell::new(false));
-        let view_speed = Rc::new(Cell::new((
-            preferences.borrow().view_speed,
-            renderer.default_tps(),
-        )));
+        let view_speed_modifier = Rc::new(Cell::new(preferences.borrow().view_speed_modifier));
         let volume = Rc::new(Cell::new(preferences.borrow().volume));
         let processor = processor.map(|processor| {
             BackgroundGameProcessor::new(
@@ -63,9 +60,9 @@ impl<G: Game, R: Renderer<G>> GameScreen<G, R> {
             history,
             current_tick: 0.0,
             paused: paused.clone(),
-            view_speed: view_speed.clone(),
+            view_speed_modifier: view_speed_modifier.clone(),
             volume: volume.clone(),
-            ui: ui::UI::new(geng, &paused, &view_speed, &volume),
+            ui: ui::UI::new(geng, &paused, &view_speed_modifier, &volume),
             ui_controller: geng::ui::Controller::new(),
             need_close: false,
             preferences,
@@ -95,10 +92,8 @@ where
     Self: 'static,
 {
     fn update(&mut self, delta_time: f64) {
-        self.view_speed
-            .set((self.view_speed.get().0, self.renderer.default_tps()));
-        if self.view_speed.get().0 != self.preferences.borrow().view_speed {
-            self.preferences.borrow_mut().view_speed = self.view_speed.get().0;
+        if self.view_speed_modifier.get() != self.preferences.borrow().view_speed_modifier {
+            self.preferences.borrow_mut().view_speed_modifier = self.view_speed_modifier.get();
         }
         if self.volume.get() != self.preferences.borrow().volume {
             self.preferences.borrow_mut().volume = self.volume.get();
@@ -110,8 +105,8 @@ where
             self.current_tick = time;
         } else {
             if !self.paused.get() {
-                self.current_tick +=
-                    delta_time * self.renderer.default_tps() * self.view_speed.get().0;
+                self.current_tick += delta_time
+                    * ui::view_speed(self.view_speed_modifier.get(), self.renderer.default_tps());
                 process_events = true;
             }
         }
@@ -133,7 +128,8 @@ where
             max_time,
             self.renderer.default_tps(),
         );
-        self.ui_controller.update(self.ui.ui(), delta_time);
+        self.ui_controller
+            .update(self.ui.ui(self.renderer.default_tps()), delta_time);
 
         for event in self
             .history
@@ -148,10 +144,14 @@ where
         let (game, extra_data, custom_data) = self.history.current_state();
         self.renderer
             .draw(game, extra_data, custom_data, framebuffer);
-        self.ui_controller.draw(self.ui.ui(), framebuffer);
+        self.ui_controller
+            .draw(self.ui.ui(self.renderer.default_tps()), framebuffer);
     }
     fn handle_event(&mut self, event: geng::Event) {
-        if !self.ui_controller.handle_event(self.ui.ui(), event.clone()) {
+        if !self
+            .ui_controller
+            .handle_event(self.ui.ui(self.renderer.default_tps()), event.clone())
+        {
             if !match event {
                 geng::Event::KeyDown { key } => match key {
                     geng::Key::P | geng::Key::Space => {

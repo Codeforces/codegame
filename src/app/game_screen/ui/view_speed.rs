@@ -1,50 +1,68 @@
 use super::*;
 
+pub fn view_speed(modifier: f64, default_tps: f64) -> f64 {
+    default_tps * modifier.exp2()
+}
+
 pub struct ViewSpeedControl {
     context: Rc<Geng>,
     core: ui::WidgetCore,
     theme: Rc<ui::Theme>,
     slider: ui::Slider,
-    value: Rc<Cell<(f64, f64)>>,
-    value_text: String,
+    modifier: Rc<Cell<f64>>,
+    text: String,
 }
 
 impl ViewSpeedControl {
-    pub fn new(context: &Rc<Geng>, theme: &Rc<ui::Theme>, value: &Rc<Cell<(f64, f64)>>) -> Self {
+    pub const MODIFIER_RANGE: RangeInclusive<f64> = -2.0..=2.0;
+
+    pub fn new(context: &Rc<Geng>, theme: &Rc<ui::Theme>, modifier: &Rc<Cell<f64>>) -> Self {
         Self {
             context: context.clone(),
             core: ui::WidgetCore::new(),
             theme: theme.clone(),
             slider: ui::Slider::new(context, theme),
-            value: value.clone(),
-            value_text: String::new(),
+            modifier: modifier.clone(),
+            text: String::new(),
         }
     }
 
-    pub fn ui<'a>(&'a mut self) -> impl ui::Widget + 'a {
+    pub fn ui<'a>(&'a mut self, default_tps: f64) -> impl ui::Widget + 'a {
         use ui::*;
-        let value = &self.value;
+        let modifier = &self.modifier;
         let show_slider = self.core.hovered() || self.core.captured();
         let slider_used = self.slider.hovered() || self.slider.captured();
         // if needs to be updated
         if true {
-            self.value_text.clear();
+            self.text.clear();
             use std::fmt::Write;
-            write!(
-                &mut self.value_text,
-                "{}% ({} TPS)",
-                (value.get().0 * 100.0) as i32,
-                (value.get().0 * value.get().1) as i32
-            )
+            let tps = view_speed(modifier.get(), default_tps);
+            if tps < 0.95 {
+                let tps10 = (tps * 10.0).round() as i32;
+                write!(
+                    &mut self.text,
+                    "{}% ({}.{} TPS)",
+                    view_speed(modifier.get(), 100.0) as i32,
+                    tps10 / 10,
+                    tps10 % 10,
+                )
+            } else {
+                write!(
+                    &mut self.text,
+                    "{}% ({} TPS)",
+                    view_speed(modifier.get(), 100.0) as i32,
+                    tps.round() as i32,
+                )
+            }
             .unwrap();
         }
         ui::stack![
             ui::column(vec![
                 if show_slider {
                     Box::new(self.slider.ui(
-                        value.get().0,
-                        0.0..=2.0,
-                        Box::new(move |new_value| value.set((new_value, value.get().1))),
+                        modifier.get(),
+                        Self::MODIFIER_RANGE,
+                        Box::new(move |new_value| modifier.set(new_value)),
                     ))
                 } else {
                     Box::new(
@@ -59,7 +77,7 @@ impl ViewSpeedControl {
                 },
                 Box::new(
                     text(
-                        &self.value_text,
+                        &self.text,
                         self.context.default_font(),
                         UI_SIZE as f32 / 2.0,
                         if slider_used {
