@@ -1,4 +1,4 @@
-use crate::*;
+use super::*;
 
 pub struct TcpPlayer<G: Game> {
     inner: StreamPlayer<G>,

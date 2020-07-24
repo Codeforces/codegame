@@ -1,3 +1,5 @@
+use super::*;
+
 #[cfg(target_arch = "wasm32")]
 #[path = "web.rs"]
 mod _impl;

@@ -1,4 +1,4 @@
-use crate::*;
+use super::*;
 use geng::ui;
 
 mod config_screen;

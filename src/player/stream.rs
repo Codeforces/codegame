@@ -1,4 +1,4 @@
-use crate::*;
+use super::*;
 
 struct Stream {
     reader: Box<dyn BufRead + Send>,

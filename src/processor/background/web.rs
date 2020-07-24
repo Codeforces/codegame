@@ -1,4 +1,4 @@
-use crate::*;
+use super::*;
 
 pub struct BackgroundGameProcessor<G: Game> {
     processor: GameProcessor<G>,
