@@ -8,6 +8,8 @@ use prelude::*;
 
 #[cfg(feature = "rendering")]
 mod app;
+#[cfg(feature = "client-gen")]
+pub mod client_gen;
 mod player;
 mod processor;
 
@@ -114,12 +116,14 @@ pub trait Game: Diff + Schematic {
 }
 
 #[derive(Serialize, Deserialize, Trans, Schematic)]
-pub enum PlayerMessage<G: Game> {
+#[schematic(no_generics_in_name)]
+pub enum ClientMessage<G: Game> {
     CustomDataMessage { data: G::CustomData },
     ActionMessage { action: G::Action },
 }
 
 #[derive(Serialize, Deserialize, Trans, Schematic)]
+#[schematic(no_generics_in_name)]
 pub struct ServerMessage<G: Game> {
     pub player_view: Option<G::PlayerView>,
 }

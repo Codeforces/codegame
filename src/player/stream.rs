@@ -47,9 +47,9 @@ impl<G: Game> Player<G> for StreamPlayer<G> {
             .write_to(&mut stream.writer)?;
             stream.writer.flush()?;
             loop {
-                match PlayerMessage::<G>::read_from(&mut stream.reader)? {
-                    PlayerMessage::ActionMessage { action } => return Ok(action),
-                    PlayerMessage::CustomDataMessage { data } => {
+                match ClientMessage::<G>::read_from(&mut stream.reader)? {
+                    ClientMessage::ActionMessage { action } => return Ok(action),
+                    ClientMessage::CustomDataMessage { data } => {
                         if let Some(handler) = custom_data_handler {
                             handler(data);
                         }
