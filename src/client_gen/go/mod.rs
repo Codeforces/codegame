@@ -1,6 +1,6 @@
 use super::*;
 
-pub type Generator = trans_gen::Go;
+pub type Generator = trans_gen::GeneratorImpl<trans_gen::gens::go::Generator>;
 
 impl<G: Game> ClientGen<G> for Generator {
     const NAME: &'static str = "Go";

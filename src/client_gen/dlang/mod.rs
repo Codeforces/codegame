@@ -1,6 +1,6 @@
 use super::*;
 
-pub type Generator = trans_gen::Dlang;
+pub type Generator = trans_gen::GeneratorImpl<trans_gen::gens::dlang::Generator>;
 
 impl<G: Game> ClientGen<G> for Generator {
     const NAME: &'static str = "Dlang";

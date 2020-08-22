@@ -1,6 +1,6 @@
 use super::*;
 
-pub type Generator = trans_gen::Python;
+pub type Generator = trans_gen::GeneratorImpl<trans_gen::gens::python::Generator>;
 
 impl<G: Game> ClientGen<G> for Generator {
     const NAME: &'static str = "Python";

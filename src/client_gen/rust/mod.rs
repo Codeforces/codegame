@@ -1,6 +1,6 @@
 use super::*;
 
-pub type Generator = trans_gen::Rust;
+pub type Generator = trans_gen::GeneratorImpl<trans_gen::gens::rust::Generator>;
 
 impl<G: Game> ClientGen<G> for Generator {
     const NAME: &'static str = "Rust";
@@ -29,11 +29,11 @@ impl<G: Game> ClientGen<G> for Generator {
         )?;
         write_file(
             options.target_dir.join("src/main.rs"),
-            project_file!(options, "src/main.rs"),
+            project_file!(options, "main.rs"),
         )?;
         write_file(
             options.target_dir.join("src/my_strategy.rs"),
-            project_file!(options, "src/my_strategy.rs"),
+            project_file!(options, "my_strategy.rs"),
         )?;
         Ok(())
     }
