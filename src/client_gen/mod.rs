@@ -161,7 +161,7 @@ where
             )?;
         }};
     }
-    if test_options.clean {
+    if test_options.clean && options.target_dir.exists() {
         std::fs::remove_dir_all(options.target_dir)?;
     }
     all_langs!(test);

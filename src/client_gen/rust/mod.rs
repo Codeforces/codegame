@@ -6,8 +6,8 @@ impl<G: Game> ClientGen<G> for Generator {
     const NAME: &'static str = "Rust";
     fn gen(options: &Options) -> anyhow::Result<()> {
         let mut gen = Self::new(&format!("{}-model", options.name), options.version);
-        gen.add(&trans_schema::schema::<ClientMessage<G>>());
-        gen.add(&trans_schema::schema::<ServerMessage<G>>());
+        gen.add(&trans::Schema::of::<ClientMessage<G>>());
+        gen.add(&trans::Schema::of::<ServerMessage<G>>());
         gen.result().write_to(options.target_dir.join("model"))?;
         write_file(
             options.target_dir.join("Dockerfile"),

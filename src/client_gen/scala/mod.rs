@@ -7,8 +7,8 @@ impl<G: Game> ClientGen<G> for Generator {
     fn gen(options: &Options) -> anyhow::Result<()> {
         let mut gen = Self::new(options.name, options.version);
         let src_path = options.target_dir.join("src").join("main").join("scala");
-        gen.add(&trans_schema::schema::<ClientMessage<G>>());
-        gen.add(&trans_schema::schema::<ServerMessage<G>>());
+        gen.add(&trans::Schema::of::<ClientMessage<G>>());
+        gen.add(&trans::Schema::of::<ServerMessage<G>>());
         gen.result().write_to(&src_path)?;
         write_file(
             options.target_dir.join("Dockerfile"),

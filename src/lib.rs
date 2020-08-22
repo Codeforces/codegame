@@ -54,7 +54,7 @@ pub struct PlayerResult {
     comment: Option<String>,
 }
 
-pub trait Game: Diff + Schematic {
+pub trait Game: Diff {
     type Options: Serialize + for<'de> Deserialize<'de> + Sync + Send + Clone + 'static;
     type OptionsPreset: Serialize
         + for<'de> Deserialize<'de>
@@ -70,40 +70,12 @@ pub trait Game: Diff + Schematic {
         + Send
         + Clone
         + 'static;
-    type Action: Serialize
-        + for<'de> Deserialize<'de>
-        + Trans
-        + Schematic
-        + Sync
-        + Send
-        + Clone
-        + 'static;
-    type Event: Serialize
-        + for<'de> Deserialize<'de>
-        + Trans
-        + Schematic
-        + Sync
-        + Send
-        + Clone
-        + 'static;
-    type PlayerView: Serialize
-        + for<'de> Deserialize<'de>
-        + Trans
-        + Schematic
-        + Sync
-        + Send
-        + Clone
-        + 'static;
+    type Action: Serialize + for<'de> Deserialize<'de> + Trans + Sync + Send + Clone + 'static;
+    type Event: Serialize + for<'de> Deserialize<'de> + Trans + Sync + Send + Clone + 'static;
+    type PlayerView: Serialize + for<'de> Deserialize<'de> + Trans + Sync + Send + Clone + 'static;
     type Results: Serialize + for<'de> Deserialize<'de> + Sync + Send + Clone + 'static;
     type PlayerExtraData;
-    type CustomData: Serialize
-        + for<'de> Deserialize<'de>
-        + Trans
-        + Schematic
-        + Sync
-        + Send
-        + Clone
-        + 'static;
+    type CustomData: Serialize + for<'de> Deserialize<'de> + Trans + Sync + Send + Clone + 'static;
     fn init(rng: &mut dyn RngCore, player_count: usize, options: Self::Options) -> Self;
     fn player_view(&self, player_index: usize) -> Self::PlayerView;
     fn process_turn(
@@ -115,15 +87,15 @@ pub trait Game: Diff + Schematic {
     fn results(&self) -> Self::Results;
 }
 
-#[derive(Serialize, Deserialize, Trans, Schematic)]
-#[schematic(no_generics_in_name)]
+#[derive(Serialize, Deserialize, Trans)]
+#[trans(no_generics_in_name)]
 pub enum ClientMessage<G: Game> {
     CustomDataMessage { data: G::CustomData },
     ActionMessage { action: G::Action },
 }
 
-#[derive(Serialize, Deserialize, Trans, Schematic)]
-#[schematic(no_generics_in_name)]
+#[derive(Serialize, Deserialize, Trans)]
+#[trans(no_generics_in_name)]
 pub struct ServerMessage<G: Game> {
     pub player_view: Option<G::PlayerView>,
 }

@@ -6,8 +6,8 @@ impl<G: Game> ClientGen<G> for Generator {
     const NAME: &'static str = "Dlang";
     fn gen(options: &Options) -> anyhow::Result<()> {
         let mut gen = Self::new(options.name, options.version);
-        gen.add(&trans_schema::schema::<ClientMessage<G>>());
-        gen.add(&trans_schema::schema::<ServerMessage<G>>());
+        gen.add(&trans::Schema::of::<ClientMessage<G>>());
+        gen.add(&trans::Schema::of::<ServerMessage<G>>());
         gen.result().write_to(options.target_dir.join("source"))?;
         write_file(
             options.target_dir.join("Dockerfile"),
