@@ -8,8 +8,8 @@ pub use tcp::*;
 
 #[derive(Debug, Error)]
 pub enum PlayerError {
-    #[error(display = "IO error: {}", 0)]
-    IOError(#[error(cause)] std::io::Error),
+    #[error("IO error: {0}")]
+    IOError(#[from] std::io::Error),
 }
 
 pub trait Player<G: Game>: Send {
