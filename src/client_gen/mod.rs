@@ -60,7 +60,7 @@ macro_rules! lang_mod {
 }
 all_langs!(lang_mod);
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum TestMode {
     Gen,
     Build,
@@ -137,6 +137,7 @@ where
 pub fn test_all<G>(
     options: &Options,
     extra_files: &HashMap<&str, HashMap<&str, &str>>,
+    language_filter: Option<HashSet<&str>>,
     test_options: &TestOptions,
 ) -> anyhow::Result<()>
 where
@@ -146,19 +147,24 @@ where
     macro_rules! test {
         ($lang:ident) => {{
             type CG = $lang::Generator;
-            let empty_extra_files = HashMap::new();
-            test::<G, CG>(
-                &Options {
-                    target_dir: options.target_dir.join(<CG as ClientGen<G>>::NAME).as_ref(),
-                    ..*options
-                },
-                if let Some(extra_files) = extra_files.get(<CG as ClientGen<G>>::NAME) {
-                    extra_files
-                } else {
-                    &empty_extra_files
-                },
-                test_options,
-            )?;
+            if language_filter
+                .as_ref()
+                .map_or(true, |filter| filter.contains(<CG as ClientGen<G>>::NAME))
+            {
+                let empty_extra_files = HashMap::new();
+                test::<G, CG>(
+                    &Options {
+                        target_dir: options.target_dir.join(<CG as ClientGen<G>>::NAME).as_ref(),
+                        ..*options
+                    },
+                    if let Some(extra_files) = extra_files.get(<CG as ClientGen<G>>::NAME) {
+                        extra_files
+                    } else {
+                        &empty_extra_files
+                    },
+                    test_options,
+                )?;
+            }
         }};
     }
     if test_options.clean && options.target_dir.exists() {
