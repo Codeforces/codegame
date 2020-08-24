@@ -43,10 +43,10 @@ enum Entry<G: Game, T: RendererData<G>> {
 
 struct SharedState<G: Game, T: RendererData<G>> {
     entries: Vec<Entry<G, T>>,
-    custom_data: Vec<Arc<HashMap<usize, Vec<G::CustomData>>>>,
+    client_data: Vec<Arc<HashMap<usize, Vec<G::ClientData>>>>,
     events: Vec<Vec<G::Event>>,
     last_state: State<G, T>,
-    last_custom_data: HashMap<usize, Vec<G::CustomData>>,
+    last_client_data: HashMap<usize, Vec<G::ClientData>>,
     total_latest_delta_size: u64,
 }
 
@@ -68,19 +68,19 @@ impl<G: Game, T: RendererData<G>> SharedState<G, T> {
             self.entries.push(Entry::Delta(delta));
         }
         self.events.push(events);
-        self.custom_data.push(Arc::new(mem::replace(
-            &mut self.last_custom_data,
+        self.client_data.push(Arc::new(mem::replace(
+            &mut self.last_client_data,
             HashMap::new(),
         )));
     }
-    fn push_custom_data(&mut self, player_index: usize, custom_data: G::CustomData) {
-        if !self.last_custom_data.contains_key(&player_index) {
-            self.last_custom_data.insert(player_index, Vec::new());
+    fn push_client_data(&mut self, player_index: usize, client_data: G::ClientData) {
+        if !self.last_client_data.contains_key(&player_index) {
+            self.last_client_data.insert(player_index, Vec::new());
         }
-        self.last_custom_data
+        self.last_client_data
             .get_mut(&player_index)
             .unwrap()
-            .push(custom_data);
+            .push(client_data);
     }
     fn len(&self) -> usize {
         self.entries.len()
@@ -92,7 +92,7 @@ pub struct History<G: Game, T: RendererData<G>> {
     current_tick_timer: Timer,
     current_tick: usize,
     current_state: State<G, T>,
-    current_custom_data: Arc<HashMap<usize, Vec<G::CustomData>>>,
+    current_client_data: Arc<HashMap<usize, Vec<G::ClientData>>>,
 }
 
 impl<G: Game, T: RendererData<G>> History<G, T> {
@@ -108,12 +108,12 @@ impl<G: Game, T: RendererData<G>> History<G, T> {
                 entries: vec![Entry::Full(initial_state.clone())],
                 events: Vec::new(),
                 last_state: initial_state.clone(),
-                custom_data: Vec::new(),
-                last_custom_data: HashMap::new(),
+                client_data: Vec::new(),
+                last_client_data: HashMap::new(),
                 total_latest_delta_size: 0,
             })),
             current_state: initial_state.clone(),
-            current_custom_data: Arc::new(HashMap::new()),
+            current_client_data: Arc::new(HashMap::new()),
             current_tick_timer: Timer::new(),
             current_tick: 0,
         }
@@ -123,7 +123,7 @@ impl<G: Game, T: RendererData<G>> History<G, T> {
             current: CurrentRenderState {
                 game: &self.current_state.game,
                 renderer_data: &self.current_state.renderer_data,
-                custom_data: &self.current_custom_data,
+                client_data: &self.current_client_data,
             },
             last_events: &self.current_state.last_events,
         }
@@ -174,13 +174,13 @@ impl<G: Game, T: RendererData<G>> History<G, T> {
         if tick != self.current_tick {
             self.current_tick_timer = Timer::new();
         }
-        if let Some(data) = shared_state.custom_data.get(tick) {
-            self.current_custom_data = data.clone();
+        if let Some(data) = shared_state.client_data.get(tick) {
+            self.current_client_data = data.clone();
         } else {
             if tick > 0 && self.current_tick_timer.elapsed() < 0.5 {
-                self.current_custom_data = shared_state.custom_data[tick - 1].clone();
+                self.current_client_data = shared_state.client_data[tick - 1].clone();
             } else {
-                self.current_custom_data = Arc::new(shared_state.last_custom_data.clone());
+                self.current_client_data = Arc::new(shared_state.last_client_data.clone());
             }
         }
         self.current_tick = tick;
@@ -192,13 +192,13 @@ impl<G: Game, T: RendererData<G>> History<G, T> {
             shared_state.lock().unwrap().push(game, events);
         }
     }
-    pub fn custom_data_handler(&self) -> impl Fn(usize, G::CustomData) + Send + 'static {
+    pub fn client_data_handler(&self) -> impl Fn(usize, G::ClientData) + Send + 'static {
         let shared_state = self.shared_state.clone();
-        move |player_index, custom_data| {
+        move |player_index, client_data| {
             shared_state
                 .lock()
                 .unwrap()
-                .push_custom_data(player_index, custom_data);
+                .push_client_data(player_index, client_data);
         }
     }
 }

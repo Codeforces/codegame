@@ -168,7 +168,7 @@ impl<G: Game + 'static> GameProcessor<G> {
 
     pub(crate) fn process_tick(
         &mut self,
-        custom_data_handler: Option<&dyn Fn(usize, G::CustomData)>,
+        client_data_handler: Option<&dyn Fn(usize, G::ClientData)>,
     ) -> Vec<G::Event> {
         assert!(!self.finished());
         let views: Vec<_> = (0..self.players.len())
@@ -185,8 +185,8 @@ impl<G: Game + 'static> GameProcessor<G> {
                         index,
                         player.get_action(
                             &view,
-                            custom_data_handler
-                                .map(move |f| (move |custom_data| f(index, custom_data)))
+                            client_data_handler
+                                .map(move |f| (move |client_data| f(index, client_data)))
                                 .as_ref()
                                 .map(|f| f as _),
                         ),

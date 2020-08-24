@@ -50,7 +50,7 @@ impl<G: Game, R: Renderer<G>> GameScreen<G, R> {
             BackgroundGameProcessor::new(
                 processor,
                 history.tick_handler(),
-                Some(history.custom_data_handler()),
+                Some(history.client_data_handler()),
             )
         });
         Self {

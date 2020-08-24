@@ -75,7 +75,7 @@ pub trait Game: Diff {
     type PlayerView: Serialize + for<'de> Deserialize<'de> + Trans + Sync + Send + Clone + 'static;
     type Results: Serialize + for<'de> Deserialize<'de> + Sync + Send + Clone + 'static;
     type PlayerExtraData;
-    type CustomData: Serialize + for<'de> Deserialize<'de> + Trans + Sync + Send + Clone + 'static;
+    type ClientData: Serialize + for<'de> Deserialize<'de> + Trans + Sync + Send + Clone + 'static;
     fn init(rng: &mut dyn RngCore, player_count: usize, options: Self::Options) -> Self;
     fn player_view(&self, player_index: usize) -> Self::PlayerView;
     fn process_turn(
@@ -90,7 +90,7 @@ pub trait Game: Diff {
 #[derive(Serialize, Deserialize, Trans)]
 #[trans(no_generics_in_name)]
 pub enum ClientMessage<G: Game> {
-    CustomDataMessage { data: G::CustomData },
+    ClientDataMessage { data: G::ClientData },
     ActionMessage { action: G::Action },
 }
 
@@ -113,7 +113,7 @@ pub trait RendererData<G: Game>: Diff {
 pub struct CurrentRenderState<'a, G: Game, T: RendererData<G>> {
     pub game: &'a G,
     pub renderer_data: &'a T,
-    pub custom_data: &'a HashMap<usize, Vec<G::CustomData>>,
+    pub client_data: &'a HashMap<usize, Vec<G::ClientData>>,
 }
 
 #[cfg(feature = "rendering")]

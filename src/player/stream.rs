@@ -37,7 +37,7 @@ impl<G: Game> Player<G> for StreamPlayer<G> {
     fn get_action(
         &mut self,
         player_view: &G::PlayerView,
-        custom_data_handler: Option<&dyn Fn(G::CustomData)>,
+        client_data_handler: Option<&dyn Fn(G::ClientData)>,
     ) -> Result<G::Action, PlayerError> {
         let stream = self.stream.as_mut().expect("Called get_action after error");
         let mut get_action = move || {
@@ -49,8 +49,8 @@ impl<G: Game> Player<G> for StreamPlayer<G> {
             loop {
                 match ClientMessage::<G>::read_from(&mut stream.reader)? {
                     ClientMessage::ActionMessage { action } => return Ok(action),
-                    ClientMessage::CustomDataMessage { data } => {
-                        if let Some(handler) = custom_data_handler {
+                    ClientMessage::ClientDataMessage { data } => {
+                        if let Some(handler) = client_data_handler {
                             handler(data);
                         }
                     }

@@ -16,7 +16,7 @@ pub trait Player<G: Game>: Send {
     fn get_action(
         &mut self,
         view: &G::PlayerView,
-        custom_data_handler: Option<&dyn Fn(G::CustomData)>,
+        client_data_handler: Option<&dyn Fn(G::ClientData)>,
     ) -> Result<G::Action, PlayerError>;
 }
 
@@ -32,7 +32,7 @@ where
     fn get_action(
         &mut self,
         _: &G::PlayerView,
-        _: Option<&dyn Fn(G::CustomData)>,
+        _: Option<&dyn Fn(G::ClientData)>,
     ) -> Result<G::Action, PlayerError> {
         Ok(default())
     }
@@ -42,9 +42,9 @@ impl<G: Game, T: Player<G> + ?Sized> Player<G> for Box<T> {
     fn get_action(
         &mut self,
         view: &G::PlayerView,
-        custom_data_handler: Option<&dyn Fn(G::CustomData)>,
+        client_data_handler: Option<&dyn Fn(G::ClientData)>,
     ) -> Result<G::Action, PlayerError> {
-        (**self).get_action(view, custom_data_handler)
+        (**self).get_action(view, client_data_handler)
     }
 }
 
@@ -54,7 +54,7 @@ impl<G: Game> Player<G> for ErroredPlayer {
     fn get_action(
         &mut self,
         _: &G::PlayerView,
-        _: Option<&dyn Fn(G::CustomData)>,
+        _: Option<&dyn Fn(G::ClientData)>,
     ) -> Result<G::Action, PlayerError> {
         Err(PlayerError::IOError(std::io::Error::new(
             std::io::ErrorKind::Other,
