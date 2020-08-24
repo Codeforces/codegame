@@ -1,13 +1,13 @@
 use super::*;
 
-impl<G: Game, R: Renderer<G>> History<G, R> {
+impl<G: Game, T: RendererData<G>> History<G, T> {
     pub fn load(path: &str) -> impl Future<Output = Self> {
-        fn load<G: Game, R: Renderer<G>>(
+        fn load<G: Game, T: RendererData<G>>(
             path: &str,
-        ) -> std::io::Result<impl Future<Output = History<G, R>>> {
+        ) -> std::io::Result<impl Future<Output = History<G, T>>> {
             let mut reader = std::io::BufReader::new(std::fs::File::open(path)?);
             let initial_state = G::read_from(&mut reader)?;
-            let history = History::<G, R>::new(&initial_state);
+            let history = History::<G, T>::new(&initial_state);
             let mut tick_handler = history.tick_handler();
             let mut current_state = initial_state;
             std::thread::spawn(move || {
@@ -24,6 +24,6 @@ impl<G: Game, R: Renderer<G>> History<G, R> {
             });
             Ok(futures::future::ready(history))
         }
-        load::<G, R>(path).expect("Failed to load replay")
+        load::<G, T>(path).expect("Failed to load replay")
     }
 }

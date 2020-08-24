@@ -101,7 +101,7 @@ pub struct ServerMessage<G: Game> {
 }
 
 #[cfg(feature = "rendering")]
-pub trait RendererExtraData<G: Game>: Diff {
+pub trait RendererData<G: Game>: Diff {
     fn new(game: &G) -> Self;
     fn update(&mut self, events: &[G::Event], game: &G) {
         #![allow(unused_variables)]
@@ -110,21 +110,27 @@ pub trait RendererExtraData<G: Game>: Diff {
 }
 
 #[cfg(feature = "rendering")]
+pub struct CurrentRenderState<'a, G: Game, T: RendererData<G>> {
+    pub game: &'a G,
+    pub renderer_data: &'a T,
+    pub custom_data: &'a HashMap<usize, Vec<G::CustomData>>,
+}
+
+#[cfg(feature = "rendering")]
+pub struct RenderState<'a, G: Game, T: RendererData<G>> {
+    pub current: CurrentRenderState<'a, G, T>,
+    pub last_events: &'a [G::Event],
+}
+
+#[cfg(feature = "rendering")]
 pub trait Renderer<G: Game>: 'static {
-    type ExtraData: RendererExtraData<G>;
+    type ExtraData: RendererData<G>;
     type Preferences: Debug + Clone + Default + Serialize + for<'de> Deserialize<'de> + 'static;
     fn default_tps(&self) -> f64;
     fn update(&mut self, delta_time: f64) {
         #![allow(unused_variables)]
     }
-    fn draw(
-        &mut self,
-        game: &G,
-        last_events: &[G::Event],
-        extra_data: &Self::ExtraData,
-        custom_data: &HashMap<usize, Vec<G::CustomData>>,
-        framebuffer: &mut ugli::Framebuffer,
-    );
+    fn draw(&mut self, state: RenderState<G, Self::ExtraData>, framebuffer: &mut ugli::Framebuffer);
     fn process_event(&mut self, event: &G::Event) {
         #![allow(unused_variables)]
     }

@@ -1,10 +1,10 @@
 use super::*;
 
-impl<G: Game, R: Renderer<G>> History<G, R> {
+impl<G: Game, T: RendererData<G>> History<G, T> {
     pub fn load(path: &str) -> impl Future<Output = Self> {
-        fn load<G: Game, R: Renderer<G>>(
+        fn load<G: Game, T: RendererData<G>>(
             path: &str,
-        ) -> Result<impl Future<Output = History<G, R>>, Box<dyn std::error::Error>> {
+        ) -> Result<impl Future<Output = History<G, T>>, Box<dyn std::error::Error>> {
             let xhr = web_sys::XmlHttpRequest::new().unwrap();
             xhr.open("GET", path).unwrap();
             xhr.set_response_type(web_sys::XmlHttpRequestResponseType::Arraybuffer);
@@ -53,6 +53,6 @@ impl<G: Game, R: Renderer<G>> History<G, R> {
             handler.forget(); // TODO: not forget
             Ok(receiver.map(|result| result.expect("Failed to load replay")))
         }
-        load::<G, R>(path).expect("Failed to load replay")
+        load::<G, T>(path).expect("Failed to load replay")
     }
 }

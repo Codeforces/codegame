@@ -1,6 +1,6 @@
 use super::*;
 
-impl<G: Game, R: Renderer<G>> History<G, R> {
+impl<G: Game, T: RendererData<G>> History<G, T> {
     pub fn save(&self, mut writer: impl std::io::Write) -> std::io::Result<()> {
         let shared_state = self.shared_state.lock().unwrap();
         let mut entries = shared_state.entries.iter();

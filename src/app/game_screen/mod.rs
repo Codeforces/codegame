@@ -6,7 +6,7 @@ pub struct GameScreen<G: Game, R: Renderer<G>> {
     geng: Rc<Geng>,
     processor: Option<BackgroundGameProcessor<G>>,
     renderer: R,
-    history: History<G, R>,
+    history: History<G, R::ExtraData>,
     current_tick: f64,
     paused: Rc<Cell<bool>>,
     view_speed_modifier: Rc<Cell<f64>>,
@@ -37,7 +37,7 @@ impl<T: Default> Default for AppPreferences<T> {
 impl<G: Game, R: Renderer<G>> GameScreen<G, R> {
     fn new_impl(
         geng: &Rc<Geng>,
-        history: History<G, R>,
+        history: History<G, R::ExtraData>,
         processor: Option<GameProcessor<G>>,
         renderer: R,
         preferences: Rc<RefCell<AutoSave<AppPreferences<R::Preferences>>>>,
@@ -79,7 +79,7 @@ impl<G: Game, R: Renderer<G>> GameScreen<G, R> {
     }
     pub fn replay(
         geng: &Rc<Geng>,
-        history: History<G, R>,
+        history: History<G, R::ExtraData>,
         renderer: R,
         preferences: Rc<RefCell<AutoSave<AppPreferences<R::Preferences>>>>,
     ) -> Self {
@@ -141,9 +141,8 @@ where
         self.renderer.update(delta_time);
     }
     fn draw(&mut self, framebuffer: &mut ugli::Framebuffer) {
-        let (game, last_events, extra_data, custom_data) = self.history.current_state();
-        self.renderer
-            .draw(game, last_events, extra_data, custom_data, framebuffer);
+        let state = self.history.current_state();
+        self.renderer.draw(state, framebuffer);
         self.ui_controller
             .draw(self.ui.ui(self.renderer.default_tps()), framebuffer);
     }

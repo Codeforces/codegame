@@ -7,54 +7,54 @@ mod load_web;
 mod save;
 
 #[derive(Serialize)]
-struct State<G: Game, R: Renderer<G>> {
+struct State<G: Game, T: RendererData<G>> {
     game: G,
     last_events: Vec<G::Event>,
-    extra_data: R::ExtraData,
+    renderer_data: T,
 }
 
-impl<G: Game, R: Renderer<G>> State<G, R> {
-    fn diff(&self, other: &Self) -> (G::Delta, <R::ExtraData as Diff>::Delta) {
+impl<G: Game, T: RendererData<G>> State<G, T> {
+    fn diff(&self, other: &Self) -> (G::Delta, T::Delta) {
         (
             Diff::diff(&self.game, &other.game),
-            Diff::diff(&self.extra_data, &other.extra_data),
+            Diff::diff(&self.renderer_data, &other.renderer_data),
         )
     }
-    fn update(&mut self, delta: &(G::Delta, <R::ExtraData as Diff>::Delta)) {
+    fn update(&mut self, delta: &(G::Delta, T::Delta)) {
         Diff::update(&mut self.game, &delta.0);
-        Diff::update(&mut self.extra_data, &delta.1);
+        Diff::update(&mut self.renderer_data, &delta.1);
     }
 }
 
-impl<G: Game, R: Renderer<G>> Clone for State<G, R> {
+impl<G: Game, T: RendererData<G>> Clone for State<G, T> {
     fn clone(&self) -> Self {
         Self {
             game: self.game.clone(),
             last_events: self.last_events.clone(),
-            extra_data: self.extra_data.clone(),
+            renderer_data: self.renderer_data.clone(),
         }
     }
 }
 
-enum Entry<G: Game, R: Renderer<G>> {
-    Full(State<G, R>),
-    Delta((G::Delta, <R::ExtraData as Diff>::Delta)),
+enum Entry<G: Game, T: RendererData<G>> {
+    Full(State<G, T>),
+    Delta((G::Delta, T::Delta)),
 }
 
-struct SharedState<G: Game, R: Renderer<G>> {
-    entries: Vec<Entry<G, R>>,
+struct SharedState<G: Game, T: RendererData<G>> {
+    entries: Vec<Entry<G, T>>,
     custom_data: Vec<Arc<HashMap<usize, Vec<G::CustomData>>>>,
     events: Vec<Vec<G::Event>>,
-    last_state: State<G, R>,
+    last_state: State<G, T>,
     last_custom_data: HashMap<usize, Vec<G::CustomData>>,
     total_latest_delta_size: u64,
 }
 
-impl<G: Game, R: Renderer<G>> SharedState<G, R> {
+impl<G: Game, T: RendererData<G>> SharedState<G, T> {
     fn push(&mut self, game: &G, events: Vec<G::Event>) {
         let prev_state = self.last_state.clone();
         self.last_state.game = game.clone();
-        RendererExtraData::update(&mut self.last_state.extra_data, &events, game);
+        RendererData::update(&mut self.last_state.renderer_data, &events, game);
         let delta = prev_state.diff(&self.last_state);
         self.total_latest_delta_size +=
             bincode::serialized_size(&delta).expect("Failed to get delta serialized size");
@@ -87,21 +87,21 @@ impl<G: Game, R: Renderer<G>> SharedState<G, R> {
     }
 }
 
-pub struct History<G: Game, R: Renderer<G>> {
-    shared_state: Arc<Mutex<SharedState<G, R>>>,
+pub struct History<G: Game, T: RendererData<G>> {
+    shared_state: Arc<Mutex<SharedState<G, T>>>,
     current_tick_timer: Timer,
     current_tick: usize,
-    current_state: State<G, R>,
+    current_state: State<G, T>,
     current_custom_data: Arc<HashMap<usize, Vec<G::CustomData>>>,
 }
 
-impl<G: Game, R: Renderer<G>> History<G, R> {
+impl<G: Game, T: RendererData<G>> History<G, T> {
     pub fn new(initial_game_state: &G) -> Self {
-        let initial_extra_data = R::ExtraData::new(initial_game_state);
+        let initial_renderer_data = T::new(initial_game_state);
         let initial_state = State {
             game: initial_game_state.clone(),
             last_events: Vec::new(),
-            extra_data: initial_extra_data,
+            renderer_data: initial_renderer_data,
         };
         Self {
             shared_state: Arc::new(Mutex::new(SharedState {
@@ -118,20 +118,15 @@ impl<G: Game, R: Renderer<G>> History<G, R> {
             current_tick: 0,
         }
     }
-    pub fn current_state(
-        &self,
-    ) -> (
-        &G,
-        &Vec<G::Event>,
-        &R::ExtraData,
-        &HashMap<usize, Vec<G::CustomData>>,
-    ) {
-        (
-            &self.current_state.game,
-            &self.current_state.last_events,
-            &self.current_state.extra_data,
-            &self.current_custom_data,
-        )
+    pub fn current_state(&self) -> RenderState<G, T> {
+        RenderState {
+            current: CurrentRenderState {
+                game: &self.current_state.game,
+                renderer_data: &self.current_state.renderer_data,
+                custom_data: &self.current_custom_data,
+            },
+            last_events: &self.current_state.last_events,
+        }
     }
     pub fn len(&self) -> usize {
         self.shared_state.lock().unwrap().len()
