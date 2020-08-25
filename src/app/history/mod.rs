@@ -6,68 +6,147 @@ mod load_native;
 mod load_web;
 mod save;
 
-#[derive(Serialize)]
-struct State<G: Game, T: RendererData<G>> {
-    game: G,
-    last_events: Vec<G::Event>,
-    renderer_data: T,
+enum DiffEntry<T: Diff> {
+    Value(T),
+    Delta(T::Delta),
 }
 
-impl<G: Game, T: RendererData<G>> State<G, T> {
-    fn diff(&self, other: &Self) -> (G::Delta, T::Delta) {
-        (
-            Diff::diff(&self.game, &other.game),
-            Diff::diff(&self.renderer_data, &other.renderer_data),
-        )
-    }
-    fn update(&mut self, delta: &(G::Delta, T::Delta)) {
-        Diff::update(&mut self.game, &delta.0);
-        Diff::update(&mut self.renderer_data, &delta.1);
-    }
+struct DiffHistory<T: Diff> {
+    entries: Vec<DiffEntry<T>>,
+    last: T,
+    last_deltas_size: u64,
 }
 
-impl<G: Game, T: RendererData<G>> Clone for State<G, T> {
-    fn clone(&self) -> Self {
+impl<T: Diff> DiffHistory<T> {
+    fn new(initial: T) -> Self {
+        let last = initial.clone();
         Self {
-            game: self.game.clone(),
-            last_events: self.last_events.clone(),
-            renderer_data: self.renderer_data.clone(),
+            entries: vec![DiffEntry::Value(initial)],
+            last,
+            last_deltas_size: 0,
         }
+    }
+    fn push(&mut self, new_value: T) {
+        let prev = mem::replace(&mut self.last, new_value);
+        let delta = prev.diff(&self.last);
+        self.last_deltas_size += bincode::serialized_size(&delta).unwrap();
+        if self.last_deltas_size > bincode::serialized_size(&self.last).unwrap() {
+            self.entries.push(DiffEntry::Value(self.last.clone()));
+            self.last_deltas_size = 0;
+        } else {
+            self.entries.push(DiffEntry::Delta(delta));
+        }
+    }
+    fn push_mut<F: FnOnce(&mut T)>(&mut self, f: F) {
+        let mut new_value = self.last.clone();
+        f(&mut new_value);
+        self.push(new_value);
+    }
+    fn len(&self) -> usize {
+        self.entries.len()
     }
 }
 
-enum Entry<G: Game, T: RendererData<G>> {
-    Full(State<G, T>),
-    Delta((G::Delta, T::Delta)),
+#[derive(Clone)]
+struct HistorySnapshot<T: Diff> {
+    value: T,
+    tick: usize,
 }
 
-struct SharedState<G: Game, T: RendererData<G>> {
-    entries: Vec<Entry<G, T>>,
-    client_data: Vec<Arc<HashMap<usize, Vec<G::ClientData>>>>,
-    events: Vec<Vec<G::Event>>,
-    last_state: State<G, T>,
-    last_client_data: HashMap<usize, Vec<G::ClientData>>,
-    total_latest_delta_size: u64,
-}
-
-impl<G: Game, T: RendererData<G>> SharedState<G, T> {
-    fn push(&mut self, game: &G, events: Vec<G::Event>) {
-        let prev_state = self.last_state.clone();
-        self.last_state.game = game.clone();
-        RendererData::update(&mut self.last_state.renderer_data, &events, game);
-        let delta = prev_state.diff(&self.last_state);
-        self.total_latest_delta_size +=
-            bincode::serialized_size(&delta).expect("Failed to get delta serialized size");
-        if self.total_latest_delta_size
-            > bincode::serialized_size(&self.last_state)
-                .expect("Failed to get last state serialized size")
-        {
-            self.entries.push(Entry::Full(self.last_state.clone()));
-            self.total_latest_delta_size = 0;
-        } else {
-            self.entries.push(Entry::Delta(delta));
+impl<T: Diff> HistorySnapshot<T> {
+    pub fn new(history: &DiffHistory<T>) -> Self {
+        Self {
+            value: match &history.entries[0] {
+                DiffEntry::Value(value) => value.clone(),
+                _ => unreachable!(),
+            },
+            tick: 0,
         }
-        self.events.push(events);
+    }
+    pub fn go_to(&mut self, tick: usize, history: &DiffHistory<T>) {
+        let last_full = history.entries[..=tick]
+            .iter()
+            .enumerate()
+            .rev()
+            .find_map(|(tick, entry)| match entry {
+                DiffEntry::Value(value) => Some(Self {
+                    value: value.clone(),
+                    tick,
+                }),
+                DiffEntry::Delta(_) => None,
+            })
+            .expect("Didn't find full entry in history");
+        if tick < self.tick || self.tick < last_full.tick {
+            *self = last_full;
+        }
+        if tick > self.tick {
+            for entry in &history.entries[self.tick + 1..=tick] {
+                match entry {
+                    DiffEntry::Value(value) => self.value = value.clone(),
+                    DiffEntry::Delta(delta) => self.value.update(delta),
+                }
+            }
+        }
+        self.tick = tick;
+    }
+}
+
+struct Window<T> {
+    prev: Option<T>,
+    current: T,
+}
+
+impl<T: Diff> Window<HistorySnapshot<T>> {
+    pub fn new(history: &DiffHistory<T>) -> Self {
+        Self {
+            prev: None,
+            current: {
+                let current = HistorySnapshot::new(history);
+                assert_eq!(current.tick, 0);
+                current
+            },
+        }
+    }
+    pub fn go_to(&mut self, tick: usize, history: &DiffHistory<T>) {
+        if tick == 0 {
+            self.prev = None;
+        } else {
+            if let Some(precomputed) = &mut self.prev {
+                precomputed.go_to(tick - 1, history);
+            } else {
+                let mut prev = self.current.clone();
+                prev.go_to(tick - 1, history);
+                self.prev = Some(prev);
+            }
+        }
+        self.current.go_to(tick, history);
+    }
+}
+
+struct HistorySharedState<G: Game, T: RendererData<G>> {
+    game: DiffHistory<G>,
+    renderer_data: DiffHistory<T>,
+    last_client_data: HashMap<usize, Vec<G::ClientData>>,
+    client_data: Vec<Arc<HashMap<usize, Vec<G::ClientData>>>>,
+    events: Vec<Arc<Vec<G::Event>>>,
+}
+
+impl<G: Game, T: RendererData<G>> HistorySharedState<G, T> {
+    fn new(initial_game: G) -> Self {
+        let initial_renderer_data = T::new(&initial_game);
+        Self {
+            game: DiffHistory::new(initial_game),
+            renderer_data: DiffHistory::new(initial_renderer_data),
+            last_client_data: HashMap::new(),
+            client_data: Vec::new(),
+            events: Vec::new(),
+        }
+    }
+    fn push(&mut self, game: G, events: Vec<G::Event>) {
+        self.renderer_data
+            .push_mut(|data| RendererData::update(data, &events, &game));
+        self.game.push(game);
+        self.events.push(Arc::new(events));
         self.client_data.push(Arc::new(mem::replace(
             &mut self.last_client_data,
             HashMap::new(),
@@ -83,49 +162,66 @@ impl<G: Game, T: RendererData<G>> SharedState<G, T> {
             .push(client_data);
     }
     fn len(&self) -> usize {
-        self.entries.len()
+        self.game.len()
     }
 }
 
 pub struct History<G: Game, T: RendererData<G>> {
-    shared_state: Arc<Mutex<SharedState<G, T>>>,
-    current_tick_timer: Timer,
-    current_tick: usize,
-    current_state: State<G, T>,
-    current_client_data: Arc<HashMap<usize, Vec<G::ClientData>>>,
+    shared_state: Arc<Mutex<HistorySharedState<G, T>>>,
+    game: Window<HistorySnapshot<G>>,
+    renderer_data: Window<HistorySnapshot<T>>,
+    client_data: Window<Arc<HashMap<usize, Vec<G::ClientData>>>>,
+    client_data_timer: Timer,
+    prev_events: Arc<Vec<G::Event>>,
+    current_tick_time: f64,
 }
 
 impl<G: Game, T: RendererData<G>> History<G, T> {
-    pub fn new(initial_game_state: &G) -> Self {
-        let initial_renderer_data = T::new(initial_game_state);
-        let initial_state = State {
-            game: initial_game_state.clone(),
-            last_events: Vec::new(),
-            renderer_data: initial_renderer_data,
+    pub fn new(initial_game_state: G) -> Self {
+        let shared_state = HistorySharedState::new(initial_game_state);
+        let game = Window::new(&shared_state.game);
+        let renderer_data = Window::new(&shared_state.renderer_data);
+        let client_data = Window {
+            prev: None,
+            current: Arc::new(shared_state.last_client_data.clone()),
         };
+        let prev_events = shared_state
+            .events
+            .last()
+            .cloned()
+            .unwrap_or(Arc::new(Vec::new()));
+        let current_tick_time = (shared_state.len() - 1) as f64;
         Self {
-            shared_state: Arc::new(Mutex::new(SharedState {
-                entries: vec![Entry::Full(initial_state.clone())],
-                events: Vec::new(),
-                last_state: initial_state.clone(),
-                client_data: Vec::new(),
-                last_client_data: HashMap::new(),
-                total_latest_delta_size: 0,
-            })),
-            current_state: initial_state.clone(),
-            current_client_data: Arc::new(HashMap::new()),
-            current_tick_timer: Timer::new(),
-            current_tick: 0,
+            shared_state: Arc::new(Mutex::new(shared_state)),
+            game,
+            renderer_data,
+            client_data,
+            client_data_timer: Timer::new(),
+            prev_events,
+            current_tick_time,
         }
     }
     pub fn current_state(&self) -> RenderState<G, T> {
         RenderState {
             current: CurrentRenderState {
-                game: &self.current_state.game,
-                renderer_data: &self.current_state.renderer_data,
-                client_data: &self.current_client_data,
+                game: &self.game.current.value,
+                renderer_data: &self.renderer_data.current.value,
+                client_data: &self.client_data.current,
             },
-            last_events: &self.current_state.last_events,
+            prev: match (
+                &self.game.prev,
+                &self.renderer_data.prev,
+                &self.client_data.prev,
+            ) {
+                (Some(game), Some(renderer_data), Some(client_data)) => Some(CurrentRenderState {
+                    game: &game.value,
+                    renderer_data: &renderer_data.value,
+                    client_data,
+                }),
+                _ => None,
+            },
+            t: self.current_tick_time + 1.0 - self.current_tick_time.ceil(),
+            prev_events: &self.prev_events,
         }
     }
     pub fn len(&self) -> usize {
@@ -133,63 +229,67 @@ impl<G: Game, T: RendererData<G>> History<G, T> {
     }
     pub fn go_to(
         &mut self,
-        tick: usize,
+        tick_time: f64,
         collect_events: bool,
     ) -> Box<dyn Iterator<Item = G::Event>> {
         let shared_state = self.shared_state.lock().unwrap();
-        let tick = tick.min(shared_state.len() - 1);
-        let mut prev_tick = self.current_tick;
+        let tick_time = tick_time.min((shared_state.len() - 1) as f64);
+        let tick = tick_time.ceil() as usize;
+
         let mut events = Vec::new();
-        if collect_events && tick > prev_tick {
-            for tick in prev_tick..tick {
-                events.extend(shared_state.events[tick].iter().cloned());
+        if collect_events && tick > self.game.current.tick {
+            for tick in self.game.current.tick..tick {
+                events.push(shared_state.events[tick].clone());
             }
         }
-        let (last_full_tick, last_full_state) = shared_state.entries[..=tick]
-            .iter()
-            .enumerate()
-            .rev()
-            .find_map(|(tick, entry)| match entry {
-                Entry::Full(game) => Some((tick, game)),
-                Entry::Delta(_) => None,
-            })
-            .expect("Didn't find full game entry in history");
-        if tick < prev_tick || prev_tick < last_full_tick {
-            self.current_state = last_full_state.clone();
-            prev_tick = last_full_tick;
+
+        if tick != self.game.current.tick {
+            self.client_data_timer = Timer::new();
         }
-        if tick > prev_tick {
-            for entry in &shared_state.entries[prev_tick + 1..=tick] {
-                match entry {
-                    Entry::Full(state) => self.current_state = state.clone(),
-                    Entry::Delta(delta) => self.current_state.update(delta),
+        if let Some(data) = shared_state.client_data.get(tick) {
+            self.client_data = Window {
+                current: data.clone(),
+                prev: if tick > 0 {
+                    Some(shared_state.client_data[tick - 1].clone())
+                } else {
+                    None
+                },
+            };
+        } else {
+            if tick > 0 && self.client_data_timer.elapsed() < 0.5 {
+                self.client_data = Window {
+                    current: shared_state.client_data[tick - 1].clone(),
+                    prev: if tick > 1 {
+                        Some(shared_state.client_data[tick - 2].clone())
+                    } else {
+                        None
+                    },
+                };
+            } else {
+                self.client_data = Window {
+                    current: Arc::new(shared_state.last_client_data.clone()),
+                    prev: if tick > 0 {
+                        Some(shared_state.client_data[tick - 1].clone())
+                    } else {
+                        None
+                    },
                 }
             }
         }
-        self.current_state.last_events = if tick == 0 {
-            Vec::new()
-        } else {
-            shared_state.events[tick - 1].clone()
-        };
-        if tick != self.current_tick {
-            self.current_tick_timer = Timer::new();
-        }
-        if let Some(data) = shared_state.client_data.get(tick) {
-            self.current_client_data = data.clone();
-        } else {
-            if tick > 0 && self.current_tick_timer.elapsed() < 0.5 {
-                self.current_client_data = shared_state.client_data[tick - 1].clone();
-            } else {
-                self.current_client_data = Arc::new(shared_state.last_client_data.clone());
-            }
-        }
-        self.current_tick = tick;
-        Box::new(events.into_iter())
+
+        self.game.go_to(tick, &shared_state.game);
+        self.renderer_data.go_to(tick, &shared_state.renderer_data);
+        self.current_tick_time = tick_time;
+        Box::new(
+            events
+                .into_iter()
+                .flat_map(move |events| (0..events.len()).map(move |i| events[i].clone())),
+        )
     }
     pub fn tick_handler(&self) -> impl FnMut(&G, Vec<G::Event>) + Send + 'static {
         let shared_state = self.shared_state.clone();
         move |game: &G, events: Vec<G::Event>| {
-            shared_state.lock().unwrap().push(game, events);
+            shared_state.lock().unwrap().push(game.clone(), events);
         }
     }
     pub fn client_data_handler(&self) -> impl Fn(usize, G::ClientData) + Send + 'static {

@@ -119,7 +119,9 @@ pub struct CurrentRenderState<'a, G: Game, T: RendererData<G>> {
 #[cfg(feature = "rendering")]
 pub struct RenderState<'a, G: Game, T: RendererData<G>> {
     pub current: CurrentRenderState<'a, G, T>,
-    pub last_events: &'a [G::Event],
+    pub prev: Option<CurrentRenderState<'a, G, T>>,
+    pub t: f64,
+    pub prev_events: &'a [G::Event],
 }
 
 #[cfg(feature = "rendering")]

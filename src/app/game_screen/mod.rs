@@ -74,7 +74,7 @@ impl<G: Game, R: Renderer<G>> GameScreen<G, R> {
         renderer: R,
         preferences: Rc<RefCell<AutoSave<AppPreferences<R::Preferences>>>>,
     ) -> Self {
-        let history = History::new(processor.game());
+        let history = History::new(processor.game().clone());
         Self::new_impl(geng, history, Some(processor), renderer, preferences)
     }
     pub fn replay(
@@ -113,7 +113,7 @@ where
 
         if let Some(processor) = &mut self.processor {
             processor.proceed({
-                let tick_needed = self.current_tick as usize;
+                let tick_needed = self.current_tick.ceil() as usize;
                 if tick_needed >= history_len {
                     tick_needed - history_len + 1
                 } else {
@@ -131,10 +131,7 @@ where
         self.ui_controller
             .update(self.ui.ui(self.renderer.default_tps()), delta_time);
 
-        for event in self
-            .history
-            .go_to(self.current_tick as usize, process_events)
-        {
+        for event in self.history.go_to(self.current_tick, process_events) {
             self.renderer.process_event(&event);
         }
 
@@ -175,8 +172,8 @@ where
                     }
                     #[cfg(not(target_arch = "wasm32"))]
                     geng::Key::S if self.geng.window().is_key_pressed(geng::Key::LCtrl) => {
-                        save_file(translate("Save game log"), "game.log", |writer| {
-                            self.history.save(writer)
+                        save_file(translate("Save game log"), "game.log", |mut writer| {
+                            self.history.save(&mut writer)
                         })
                         .expect("Failed to save game log");
                         true

@@ -7,7 +7,7 @@ impl<G: Game, T: RendererData<G>> History<G, T> {
         ) -> std::io::Result<impl Future<Output = History<G, T>>> {
             let mut reader = std::io::BufReader::new(std::fs::File::open(path)?);
             let initial_state = G::read_from(&mut reader)?;
-            let history = History::<G, T>::new(&initial_state);
+            let history = History::<G, T>::new(initial_state.clone());
             let mut tick_handler = history.tick_handler();
             let mut current_state = initial_state;
             std::thread::spawn(move || {

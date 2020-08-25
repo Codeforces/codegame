@@ -23,7 +23,7 @@ impl<G: Game, T: RendererData<G>> History<G, T> {
                     .to_vec();
                     let mut reader = data.as_slice();
                     let initial_state = G::read_from(&mut reader)?;
-                    let history = History::new(&initial_state);
+                    let history = History::new(initial_state.clone());
                     let mut current_state = initial_state;
                     let mut tick_handler = history.tick_handler();
                     while !reader.fill_buf()?.is_empty() {
