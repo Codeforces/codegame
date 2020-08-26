@@ -279,6 +279,11 @@ impl<G: Game, T: RendererData<G>> History<G, T> {
 
         self.game.go_to(tick, &shared_state.game);
         self.renderer_data.go_to(tick, &shared_state.renderer_data);
+        self.prev_events = if tick > 0 {
+            shared_state.events[tick - 1].clone()
+        } else {
+            Arc::new(Vec::new())
+        };
         self.current_tick_time = tick_time;
         Box::new(
             events
