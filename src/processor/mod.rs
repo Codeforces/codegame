@@ -1,72 +1,15 @@
 use super::*;
 
 mod background;
+#[path = "strategy/mod.rs"]
+pub mod processor_strategy;
 
 pub use background::*;
-
-enum State<G: Game> {
-    Game {
-        game: G,
-        rng: Box<dyn RngCore + Send>,
-    },
-    Repeater {
-        game: G,
-        reader: Box<dyn std::io::BufRead + Send>,
-        finished: bool,
-    },
-}
-
-impl<G: Game> State<G> {
-    fn process_turn(&mut self, actions: HashMap<usize, G::Action>) -> Vec<G::Event> {
-        match self {
-            Self::Game { game, rng } => game.process_turn(rng, actions),
-            Self::Repeater {
-                game,
-                reader,
-                finished,
-            } => {
-                assert!(!*finished);
-                let events =
-                    Vec::<G::Event>::read_from(&mut *reader).expect("Failed to read game log");
-                let delta = G::Delta::read_from(&mut *reader).expect("Failed to read game log");
-                game.update(&delta);
-                self.update_finished();
-                events
-            }
-        }
-    }
-    fn game(&self) -> &G {
-        match self {
-            Self::Game { game, .. } | Self::Repeater { game, .. } => game,
-        }
-    }
-    fn update_finished(&mut self) {
-        match self {
-            Self::Game { .. } => {}
-            Self::Repeater {
-                reader, finished, ..
-            } => {
-                if reader
-                    .fill_buf()
-                    .expect("Failed to read game log")
-                    .is_empty()
-                {
-                    *finished = true;
-                }
-            }
-        }
-    }
-    fn finished(&self) -> bool {
-        match self {
-            Self::Game { game, .. } => game.finished(),
-            Self::Repeater { finished, .. } => *finished,
-        }
-    }
-}
+pub use processor_strategy::GameProcessorStrategy;
 
 pub struct GameProcessor<G: Game> {
     seed: Option<u64>,
-    state: State<G>,
+    strategy: Box<dyn GameProcessorStrategy<G>>,
     players: Vec<Option<Box<dyn Player<G>>>>,
     player_comments: Vec<Option<String>>,
     ticks_processed: usize,
@@ -95,14 +38,12 @@ impl<G: Game + 'static> GameProcessor<G> {
     }
     pub fn new(seed: Option<u64>, options: G::Options, players: Vec<Box<dyn Player<G>>>) -> Self {
         let seed = seed.unwrap_or_else(|| global_rng().gen());
-        let mut rng = Box::new(<rand::rngs::StdRng as rand::SeedableRng>::seed_from_u64(
-            seed,
-        ));
+        let mut rng = <rand::rngs::StdRng as rand::SeedableRng>::seed_from_u64(seed);
         let game = G::init(&mut rng, players.len(), options);
         let player_comments = vec![None; players.len()];
         Self {
             seed: Some(seed),
-            state: State::Game { game, rng },
+            strategy: Box::new(processor_strategy::Standard::new(game, rng)),
             players: players.into_iter().map(|player| Some(player)).collect(),
             player_comments,
             ticks_processed: 0,
@@ -135,18 +76,12 @@ impl<G: Game + 'static> GameProcessor<G> {
         reader: impl std::io::Read + Send + 'static,
         players: Vec<Box<dyn Player<G>>>,
     ) -> Self {
-        let mut reader = std::io::BufReader::new(reader);
-        let game = G::read_from(&mut reader).expect("Failed to read game log");
-        let mut state = State::Repeater {
-            game,
-            reader: Box::new(reader),
-            finished: false,
-        };
-        state.update_finished();
         let player_comments = vec![None; players.len()];
         Self {
             seed: None,
-            state,
+            strategy: Box::new(processor_strategy::Repeat::new(Box::new(
+                std::io::BufReader::new(reader),
+            ))),
             players: players.into_iter().map(|player| Some(player)).collect(),
             player_comments,
             ticks_processed: 0,
@@ -159,7 +94,7 @@ impl<G: Game + 'static> GameProcessor<G> {
         &mut self,
         mut handler: Box<dyn FnMut(Option<&Vec<G::Event>>, &G) + Send>,
     ) {
-        handler(None, self.state.game());
+        handler(None, self.strategy.game());
         self.tick_handler = Some(handler);
     }
     pub fn set_results_handler(&mut self, handler: Box<dyn FnOnce(FullResults<G>) + Send>) {
@@ -172,7 +107,7 @@ impl<G: Game + 'static> GameProcessor<G> {
     ) -> Vec<G::Event> {
         assert!(!self.finished());
         let views: Vec<_> = (0..self.players.len())
-            .map(|index| self.state.game().player_view(index))
+            .map(|index| self.strategy.game().player_view(index))
             .collect();
         let action_results = self
             .players
@@ -208,12 +143,12 @@ impl<G: Game + 'static> GameProcessor<G> {
                 *player = None;
             }
         }
-        let events = self.state.process_turn(actions);
+        let events = self.strategy.process_turn(actions);
         if let Some(handler) = &mut self.tick_handler {
-            handler(Some(&events), self.state.game());
+            handler(Some(&events), self.strategy.game());
         }
         if self.finished() {
-            let results = self.state.game().results();
+            let results = self.strategy.game().results();
             if let Some(handler) = self.results_handler.take() {
                 handler(FullResults {
                     players: self
@@ -242,10 +177,10 @@ impl<G: Game + 'static> GameProcessor<G> {
     }
 
     pub fn game(&self) -> &G {
-        self.state.game()
+        self.strategy.game()
     }
 
     pub fn finished(&self) -> bool {
-        self.state.finished()
+        self.strategy.finished()
     }
 }
