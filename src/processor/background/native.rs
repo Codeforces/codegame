@@ -25,13 +25,14 @@ impl<G: Game> BackgroundGameProcessor<G> {
                             && ticks_to_process.compare_and_swap(ticks, ticks - 1, Ordering::SeqCst)
                                 == ticks
                         {
+                            let events = processor
+                                .process_tick(client_data_handler.as_ref().map(|f| f as _));
+                            tick_handler(processor.game(), events);
+                            ticks_to_process.fetch_min(ticks - 1, Ordering::SeqCst);
                             break;
                         }
                         std::thread::park();
                     }
-                    let events =
-                        processor.process_tick(client_data_handler.as_ref().map(|f| f as _));
-                    tick_handler(processor.game(), events);
                 }
             }
         });
