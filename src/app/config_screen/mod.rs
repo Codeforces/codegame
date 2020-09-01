@@ -93,11 +93,26 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
                 Color::GRAY,
             )) as Box<dyn Widget>
         };
+        let theme = &self.theme;
         let column = ui::column![
             row(self
                 .player_configs
                 .iter_mut()
-                .map(|config| Box::new(config.ui()) as _)
+                .enumerate()
+                .map(move |(index, config)| Box::new({
+                    ui::column![
+                        ui::text(
+                            format!("{} {}", translate("Player"), index + 1),
+                            &theme.font,
+                            32.0,
+                            Color::GRAY,
+                        )
+                        .align(vec2(0.5, 0.5)),
+                        config.ui().align(vec2(0.5, 0.5))
+                    ]
+                    .fixed_size(vec2(200.0, 100.0))
+                    .align(vec2(0.5, 0.5))
+                }) as _)
                 .collect())
             .align(vec2(0.5, 0.5)),
             text(
@@ -223,13 +238,12 @@ impl<G: Game, R: Renderer<G>> ConfigScreen<G, R> {
         let renderer = RendererWrapper(Rc::new(RefCell::new(renderer)));
         let player_config_options = Rc::new(player_config_options);
         let mut player_configs = Vec::with_capacity(player_config_defaults.len());
-        for (index, default) in player_config_defaults.into_iter().enumerate() {
+        for default in player_config_defaults {
             player_configs.push(PlayerConfigWidget::new(
                 geng,
                 theme,
                 &player_config_options,
                 default,
-                format!("{} {}", translate("Player"), index + 1),
             ));
         }
         Self {

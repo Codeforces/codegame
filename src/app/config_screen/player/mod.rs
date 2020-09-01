@@ -20,7 +20,6 @@ pub(crate) struct PlayerConfigWidget<G: Game> {
     current_config: Box<dyn PlayerConfig<G>>,
     current_config_index: usize,
     config_switch: Option<usize>,
-    label: String,
     button: ui::TextButton,
 }
 
@@ -30,7 +29,6 @@ impl<G: Game> PlayerConfigWidget<G> {
         theme: &Rc<ui::Theme>,
         options: &Rc<Vec<Box<dyn Fn() -> Box<dyn PlayerConfig<G>>>>>,
         default_option: usize,
-        label: String,
     ) -> Self {
         let current_config = options[default_option]();
         let button_text = current_config.name().to_owned();
@@ -40,7 +38,6 @@ impl<G: Game> PlayerConfigWidget<G> {
             current_config,
             current_config_index: default_option,
             config_switch: None,
-            label,
             button: ui::TextButton::new(geng, theme, button_text, 32.0),
         }
     }
@@ -51,7 +48,6 @@ impl<G: Game> PlayerConfigWidget<G> {
             self.button.text = self.current_config.name().to_owned();
         }
         ui::column![
-            text(&self.label, &self.theme.font, 32.0, Color::GRAY).align(vec2(0.5, 0.5)),
             self.button
                 .ui(Box::new({
                     let new_config = (self.current_config_index + 1) % self.options.len();
@@ -66,8 +62,6 @@ impl<G: Game> PlayerConfigWidget<G> {
                 .uniform_padding(8.0),
             self.current_config.ui(),
         ]
-        .fixed_size(vec2(200.0, 100.0))
-        .align(vec2(0.5, 0.5))
     }
     pub fn ready(&mut self) -> bool {
         self.current_config.ready()
