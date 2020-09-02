@@ -45,7 +45,13 @@ struct Data<G: Game, R: Renderer<G>> {
     replay_button: ui::TextButton,
     start_button: ui::TextButton,
     repeat_button: ui::TextButton,
+    player_count_range: RangeInclusive<usize>,
     player_configs: Vec<PlayerConfigWidget<G>>,
+    player_config_options: Rc<Vec<Box<dyn Fn() -> Box<dyn PlayerConfig<G>>>>>,
+    add_player_button: ui::TextButton,
+    add_player: bool,
+    remove_player_button: ui::TextButton,
+    remove_player: bool,
     renderer: RendererWrapper<R>,
     replay_requested: bool,
     repeat_requested: bool,
@@ -54,6 +60,24 @@ struct Data<G: Game, R: Renderer<G>> {
 
 impl<G: Game, R: Renderer<G>> Data<G, R> {
     pub fn ui<'a>(&'a mut self) -> impl ui::Widget + 'a {
+        if self.add_player {
+            self.add_player = false;
+            if self.player_configs.len() < *self.player_count_range.end() {
+                self.player_configs.push(PlayerConfigWidget::new(
+                    &self.geng,
+                    &self.theme,
+                    &self.player_config_options,
+                    0,
+                ));
+            }
+        }
+        if self.remove_player {
+            self.remove_player = false;
+            if self.player_configs.len() > *self.player_count_range.start() {
+                self.player_configs.pop();
+            }
+        }
+
         use ui::*;
         let options = self.full_options();
         let mut ready = true;
@@ -94,6 +118,8 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
             )) as Box<dyn Widget>
         };
         let theme = &self.theme;
+        let add_player = &mut self.add_player;
+        let remove_player = &mut self.remove_player;
         let column = ui::column![
             row(self
                 .player_configs
@@ -113,6 +139,15 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
                     .fixed_size(vec2(200.0, 100.0))
                     .align(vec2(0.5, 0.5))
                 }) as _)
+                .chain(std::iter::once(Box::new(
+                    ui::column![
+                        self.add_player_button
+                            .ui(Box::new(move || *add_player = true)),
+                        self.remove_player_button
+                            .ui(Box::new(move || *remove_player = true)),
+                    ]
+                    .align(vec2(0.5, 0.5))
+                ) as _))
                 .collect())
             .align(vec2(0.5, 0.5)),
             text(
@@ -231,6 +266,7 @@ impl<G: Game, R: Renderer<G>> ConfigScreen<G, R> {
         game_options_config: Box<dyn DeepConfig<G::OptionsPreset>>,
         player_config_options: Vec<Box<dyn Fn() -> Box<dyn PlayerConfig<G>>>>,
         player_config_defaults: Vec<usize>,
+        player_count_range: RangeInclusive<usize>,
         renderer: R,
         preferences: Rc<RefCell<AutoSave<AppPreferences<R::Preferences>>>>,
     ) -> Self {
@@ -270,7 +306,23 @@ impl<G: Game, R: Renderer<G>> ConfigScreen<G, R> {
                     32.0,
                 ),
                 game_options_config,
+                player_count_range,
                 player_configs,
+                player_config_options: player_config_options.clone(),
+                add_player_button: ui::TextButton::new(
+                    geng,
+                    theme,
+                    translate("add").to_owned(),
+                    32.0,
+                ),
+                add_player: false,
+                remove_player_button: ui::TextButton::new(
+                    geng,
+                    theme,
+                    translate("remove").to_owned(),
+                    32.0,
+                ),
+                remove_player: false,
                 renderer,
                 replay_requested: false,
                 repeat_requested: false,
