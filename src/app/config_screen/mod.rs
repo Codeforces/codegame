@@ -122,25 +122,26 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
         let theme = &self.theme;
         let add_player = &mut self.add_player;
         let remove_player = &mut self.remove_player;
-        let column = ui::column![
-            row(self
-                .player_configs
+        let players_section = ui::row(
+            self.player_configs
                 .iter_mut()
                 .enumerate()
-                .map(move |(index, config)| Box::new({
-                    ui::column![
-                        ui::text(
-                            format!("{} {}", translate("Player"), index + 1),
-                            &theme.font,
-                            32.0,
-                            Color::GRAY,
-                        )
-                        .align(vec2(0.5, 0.5)),
-                        config.ui().align(vec2(0.5, 0.5))
-                    ]
-                    .fixed_size(vec2(200.0, 100.0))
-                    .align(vec2(0.5, 0.5))
-                }) as _)
+                .map(move |(index, config)| {
+                    Box::new({
+                        ui::column![
+                            ui::text(
+                                format!("{} {}", translate("Player"), index + 1),
+                                &theme.font,
+                                32.0,
+                                Color::GRAY,
+                            )
+                            .align(vec2(0.5, 0.5)),
+                            config.ui().align(vec2(0.5, 0.5))
+                        ]
+                        .fixed_size(vec2(200.0, 100.0))
+                        .align(vec2(0.5, 0.5))
+                    }) as _
+                })
                 .chain(std::iter::once(Box::new(
                     ui::column![
                         self.add_player_button
@@ -148,18 +149,14 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
                         self.remove_player_button
                             .ui(Box::new(move || *remove_player = true)),
                     ]
-                    .align(vec2(0.5, 0.5))
+                    .align(vec2(0.5, 0.5)),
                 ) as _))
-                .collect())
-            .align(vec2(0.5, 0.5)),
-            text(
-                translate("Game options"),
-                &self.theme.font,
-                32.0,
-                Color::GRAY
-            )
-            .padding_top(32.0)
-            .align(vec2(0.5, 0.5)),
+                .collect(),
+        )
+        .align(vec2(0.5, 0.5));
+        let config_section = self.game_options_config.ui().align(vec2(0.5, 0.5));
+        #[cfg(not(target_arch = "wasm32"))]
+        let config_section = ui::column![
             ui::row![
                 text(
                     self.game_state_path
@@ -183,11 +180,23 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
                 })),
             ]
             .align(vec2(0.5, 0.5)),
-            self.game_options_config.ui().align(vec2(0.5, 0.5)),
-            play_section.padding_top(32.0).align(vec2(0.5, 0.5)),
+            config_section,
         ];
+        let config_section = ui::column![
+            text(
+                translate("Game options"),
+                &self.theme.font,
+                32.0,
+                Color::GRAY,
+            )
+            .padding_top(32.0)
+            .align(vec2(0.5, 0.5)),
+            config_section,
+        ];
+        let play_section = play_section.padding_top(32.0).align(vec2(0.5, 0.5));
+        let result = ui::column![players_section, config_section, play_section];
         #[cfg(not(target_arch = "wasm32"))]
-        let column = ui::column![
+        let result = ui::column![
             row![
                 text(
                     translate("Create a game or"),
@@ -203,7 +212,7 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
             ]
             .align(vec2(0.5, 0.5))
             .padding_bottom(32.0),
-            column,
+            result,
             self.save_button
                 .ui(Box::new(move || {
                     save_file(translate("save config"), "config.json", move |writer| {
@@ -214,7 +223,7 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
                 .padding_top(32.0)
                 .align(vec2(0.5, 0.5)),
         ];
-        column.align(vec2(0.5, 0.5))
+        result.align(vec2(0.5, 0.5))
     }
     fn transition(&mut self) -> Option<geng::Transition> {
         if self.ready {
