@@ -143,8 +143,9 @@ impl<G: Game, T: RendererData<G>> HistorySharedState<G, T> {
         }
     }
     fn push(&mut self, game: G, events: Vec<G::Event>) {
+        let prev_game = &self.game.last;
         self.renderer_data
-            .push_mut(|data| RendererData::update(data, &events, &game));
+            .push_mut(|data| RendererData::update(data, &events, &prev_game, &game));
         self.game.push(game);
         self.events.push(Arc::new(events));
         self.client_data.push(Arc::new(mem::replace(

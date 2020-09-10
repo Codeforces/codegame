@@ -138,7 +138,7 @@ pub struct ServerMessage<G: Game> {
 #[cfg(feature = "rendering")]
 pub trait RendererData<G: Game>: Diff {
     fn new(game: &G) -> Self;
-    fn update(&mut self, events: &[G::Event], game: &G) {
+    fn update(&mut self, events: &[G::Event], prev_game: &G, game: &G) {
         #![allow(unused_variables)]
         *self = Self::new(game);
     }
