@@ -41,6 +41,8 @@ struct Data<G: Game, R: Renderer<G>> {
     preferences: Rc<RefCell<AutoSave<AppPreferences<R::Preferences>>>>,
     theme: Rc<ui::Theme>,
     game_options_config: Box<dyn DeepConfig<G::OptionsPreset>>,
+    game_state_path: Option<std::path::PathBuf>,
+    game_state_path_button: ui::TextButton,
     save_button: ui::TextButton,
     replay_button: ui::TextButton,
     start_button: ui::TextButton,
@@ -158,6 +160,29 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
             )
             .padding_top(32.0)
             .align(vec2(0.5, 0.5)),
+            ui::row![
+                text(
+                    self.game_state_path
+                        .as_ref()
+                        .map_or("Create new game", |path| path
+                            .file_name()
+                            .unwrap()
+                            .to_str()
+                            .unwrap())
+                        .to_owned(),
+                    &self.theme.font,
+                    32.0,
+                    Color::GRAY
+                )
+                .padding_right(32.0),
+                self.game_state_path_button.ui(Box::new({
+                    let path = &mut self.game_state_path;
+                    move || {
+                        *path = select_file("Load game state");
+                    }
+                })),
+            ]
+            .align(vec2(0.5, 0.5)),
             self.game_options_config.ui().align(vec2(0.5, 0.5)),
             play_section.padding_top(32.0).align(vec2(0.5, 0.5)),
         ];
@@ -201,7 +226,7 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
                 .collect();
             return Some(geng::Transition::Push(Box::new(GameScreen::new(
                 &self.geng,
-                GameProcessor::new(None, self.game_options_config.get().into(), players),
+                GameProcessor::new(None, self.game_init_config().into(), players),
                 self.renderer.clone(),
                 self.preferences.clone(),
             ))));
@@ -241,10 +266,16 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
         }
         None
     }
+    fn game_init_config(&self) -> GameInitConfig<G> {
+        match &self.game_state_path {
+            Some(path) => GameInitConfig::LoadFrom(path.clone()),
+            Non => GameInitConfig::Create(self.game_options_config.get()),
+        }
+    }
     fn full_options(&self) -> FullOptions<G> {
         FullOptions {
             seed: None,
-            options_preset: self.game_options_config.get(),
+            game: self.game_init_config(),
             players: self
                 .player_configs
                 .iter()
@@ -306,6 +337,13 @@ impl<G: Game, R: Renderer<G>> ConfigScreen<G, R> {
                     32.0,
                 ),
                 game_options_config,
+                game_state_path: None,
+                game_state_path_button: ui::TextButton::new(
+                    geng,
+                    theme,
+                    translate("load game state").to_owned(),
+                    32.0,
+                ),
                 player_count_range,
                 player_configs,
                 player_config_options: player_config_options.clone(),

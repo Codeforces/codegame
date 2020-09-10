@@ -26,9 +26,43 @@ pub trait PlayerOptions<G: Game>: From<TcpPlayerOptions> + From<EmptyPlayerOptio
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum GameInitOptions<G: Game> {
+    Ready(#[serde(bound = "")] G),
+    New(#[serde(bound = "")] G::Options),
+}
+
+impl<G: Game> Default for GameInitOptions<G>
+where
+    G::Options: Default,
+{
+    fn default() -> Self {
+        Self::New(default())
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum GameInitConfig<G: Game> {
+    LoadFrom(std::path::PathBuf),
+    Create(G::OptionsPreset),
+}
+
+impl<G: Game> From<GameInitConfig<G>> for GameInitOptions<G> {
+    fn from(config: GameInitConfig<G>) -> Self {
+        match config {
+            GameInitConfig::LoadFrom(path) => Self::Ready(
+                Trans::read_from(&mut std::fs::read(path).expect("Failed to read file").as_slice())
+                    .expect("Failed to parse file"),
+            ),
+            GameInitConfig::Create(preset) => Self::New(preset.into()),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FullOptions<G: Game> {
     pub seed: Option<u64>,
-    pub options_preset: G::OptionsPreset,
+    #[serde(bound = "")]
+    pub game: GameInitConfig<G>,
     pub players: Vec<G::PlayerOptions>,
 }
 
@@ -56,7 +90,8 @@ pub struct PlayerResult {
 
 pub trait Game: Diff {
     type Options: Serialize + for<'de> Deserialize<'de> + Sync + Send + Clone + 'static;
-    type OptionsPreset: Serialize
+    type OptionsPreset: Debug
+        + Serialize
         + for<'de> Deserialize<'de>
         + Sync
         + Send

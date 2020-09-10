@@ -21,7 +21,7 @@ impl<G: Game + 'static> GameProcessor<G> {
     pub fn new_full(full_options: FullOptions<G>, player_extra_data: &G::PlayerExtraData) -> Self {
         Self::new(
             full_options.seed,
-            full_options.options_preset.into(),
+            full_options.game.into(),
             futures::executor::block_on(futures::future::join_all(
                 full_options
                     .players
@@ -36,10 +36,17 @@ impl<G: Game + 'static> GameProcessor<G> {
             .collect(),
         )
     }
-    pub fn new(seed: Option<u64>, options: G::Options, players: Vec<Box<dyn Player<G>>>) -> Self {
+    pub fn new(
+        seed: Option<u64>,
+        options: GameInitOptions<G>,
+        players: Vec<Box<dyn Player<G>>>,
+    ) -> Self {
         let seed = seed.unwrap_or_else(|| global_rng().gen());
         let mut rng = <rand::rngs::StdRng as rand::SeedableRng>::seed_from_u64(seed);
-        let game = G::init(&mut rng, players.len(), options);
+        let game = match options {
+            GameInitOptions::Ready(game) => game,
+            GameInitOptions::New(options) => G::init(&mut rng, players.len(), options),
+        };
         let player_comments = vec![None; players.len()];
         Self {
             seed: Some(seed),
