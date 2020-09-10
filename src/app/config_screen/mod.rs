@@ -99,7 +99,7 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
             } else {
                 Box::new(ui::row![
                     play.center(),
-                    text(translate("or"), &self.theme.font, 32.0, Color::GRAY)
+                    ui::Text::new(translate("or"), &self.theme.font, 32.0, Color::GRAY)
                         .center()
                         .padding_left(32.0)
                         .padding_right(32.0),
@@ -112,7 +112,7 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
                 ]) as Box<dyn Widget>
             }
         } else {
-            Box::new(text(
+            Box::new(ui::Text::new(
                 translate("Waiting for players"),
                 &self.theme.font,
                 32.0,
@@ -129,7 +129,7 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
                 .map(move |(index, config)| {
                     Box::new({
                         ui::column![
-                            ui::text(
+                            ui::Text::new(
                                 format!("{} {}", translate("Player"), index + 1),
                                 &theme.font,
                                 32.0,
@@ -158,7 +158,7 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
         #[cfg(not(target_arch = "wasm32"))]
         let config_section = ui::column![
             ui::row![
-                text(
+                ui::Text::new(
                     self.game_state_path
                         .as_ref()
                         .map_or("Create new game", |path| path
@@ -183,7 +183,7 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
             config_section,
         ];
         let config_section = ui::column![
-            text(
+            ui::Text::new(
                 translate("Game options"),
                 &self.theme.font,
                 32.0,
@@ -198,7 +198,7 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
         #[cfg(not(target_arch = "wasm32"))]
         let result = ui::column![
             row![
-                text(
+                ui::Text::new(
                     translate("Create a game or"),
                     &self.theme.font,
                     32.0,

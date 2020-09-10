@@ -21,14 +21,14 @@ impl TimeLabel {
         let time = time as usize;
         self.time_text = format!("{}:{:02}", time / 60, time % 60);
         ui::column![
-            text(
+            ui::Text::new(
                 &self.tick_text,
                 &self.font,
                 UI_SIZE as f32 / 2.0,
                 Color::WHITE
             )
             .maintain_aspect(vec2(0.5, 0.5)),
-            text(
+            ui::Text::new(
                 &self.time_text,
                 &self.font,
                 UI_SIZE as f32 / 2.0,

@@ -35,7 +35,7 @@ where
     }
     fn ui<'a>(&'a mut self) -> Box<dyn ui::Widget + 'a> {
         use ui::*;
-        let ui = ui::text(
+        let ui = ui::Text::new(
             translate("Does nothing"),
             &self.theme.font,
             16.0,

@@ -58,7 +58,7 @@ impl<G: Game> PlayerConfig<G> for TcpPlayerConfig<G> {
         let state = Rc::new(RefCell::new((&mut self.options.port, &mut self.player)));
         let mut port_buttons = self.port_buttons.iter_mut();
         let port_config = ui::row![
-            ui::text(
+            ui::Text::new(
                 format!("{}: {}", translate("Port"), *state.borrow().0),
                 &self.theme.font,
                 16.0,
@@ -90,7 +90,7 @@ impl<G: Game> PlayerConfig<G> for TcpPlayerConfig<G> {
                 .center(),
         ];
         let text =
-            ui::text(status_text, &self.theme.font, 16.0, status_color).align(vec2(0.5, 1.0));
+            ui::Text::new(status_text, &self.theme.font, 16.0, status_color).align(vec2(0.5, 1.0));
         Box::new(ui::column![port_config.center(), text])
     }
     fn ready(&mut self) -> bool {

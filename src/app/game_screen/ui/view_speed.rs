@@ -66,30 +66,30 @@ impl ViewSpeedControl {
                     ))
                 } else {
                     Box::new(
-                        text(
+                        ui::Text::new(
                             translate("view speed"),
                             self.context.default_font(),
                             UI_SIZE as f32 / 2.0,
-                            self.theme.color,
+                            self.theme.usable_color,
                         )
                         .maintain_aspect(vec2(0.5, 0.5)),
                     )
                 },
                 Box::new(
-                    text(
+                    ui::Text::new(
                         &self.text,
                         self.context.default_font(),
                         UI_SIZE as f32 / 2.0,
                         if slider_used {
                             self.theme.hover_color
                         } else {
-                            self.theme.color
+                            self.theme.usable_color
                         }
                     )
                     .maintain_aspect(vec2(0.5, 0.5)),
                 )
             ]),
-            ui::control_panel(&mut self.core),
+            &mut self.core,
         ]
         .fixed_size(vec2(UI_SIZE * 3.0, UI_SIZE))
         .uniform_padding(UI_PADDING)
