@@ -58,7 +58,7 @@ impl<G: Game> PlayerConfigWidget<G> {
                         *config_switch = Some(new_config);
                     }
                 }))
-                .align(vec2(0.5, 0.5))
+                .center()
                 .uniform_padding(8.0),
             self.current_config.ui(),
         ]

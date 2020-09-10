@@ -98,9 +98,9 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
                 Box::new(play) as Box<dyn Widget>
             } else {
                 Box::new(ui::row![
-                    play.align(vec2(0.5, 0.5)),
+                    play.center(),
                     text(translate("or"), &self.theme.font, 32.0, Color::GRAY)
-                        .align(vec2(0.5, 0.5))
+                        .center()
                         .padding_left(32.0)
                         .padding_right(32.0),
                     self.repeat_button
@@ -108,7 +108,7 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
                             let repeat_requested = &mut self.repeat_requested;
                             move || *repeat_requested = true
                         }))
-                        .align(vec2(0.5, 0.5)),
+                        .center(),
                 ]) as Box<dyn Widget>
             }
         } else {
@@ -135,11 +135,11 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
                                 32.0,
                                 Color::GRAY,
                             )
-                            .align(vec2(0.5, 0.5)),
-                            config.ui().align(vec2(0.5, 0.5))
+                            .center(),
+                            config.ui().center()
                         ]
                         .fixed_size(vec2(200.0, 100.0))
-                        .align(vec2(0.5, 0.5))
+                        .center()
                     }) as _
                 })
                 .chain(std::iter::once(Box::new(
@@ -149,12 +149,12 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
                         self.remove_player_button
                             .ui(Box::new(move || *remove_player = true)),
                     ]
-                    .align(vec2(0.5, 0.5)),
+                    .center(),
                 ) as _))
                 .collect(),
         )
-        .align(vec2(0.5, 0.5));
-        let config_section = self.game_options_config.ui().align(vec2(0.5, 0.5));
+        .center();
+        let config_section = self.game_options_config.ui().center();
         #[cfg(not(target_arch = "wasm32"))]
         let config_section = ui::column![
             ui::row![
@@ -179,7 +179,7 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
                     }
                 })),
             ]
-            .align(vec2(0.5, 0.5)),
+            .center(),
             config_section,
         ];
         let config_section = ui::column![
@@ -190,10 +190,10 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
                 Color::GRAY,
             )
             .padding_top(32.0)
-            .align(vec2(0.5, 0.5)),
+            .center(),
             config_section,
         ];
-        let play_section = play_section.padding_top(32.0).align(vec2(0.5, 0.5));
+        let play_section = play_section.padding_top(32.0).center();
         let result = ui::column![players_section, config_section, play_section];
         #[cfg(not(target_arch = "wasm32"))]
         let result = ui::column![
@@ -210,7 +210,7 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
                     move || *replay_requested = true
                 })),
             ]
-            .align(vec2(0.5, 0.5))
+            .center()
             .padding_bottom(32.0),
             result,
             self.save_button
@@ -221,9 +221,9 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
                     .expect("Failed to save config");
                 }))
                 .padding_top(32.0)
-                .align(vec2(0.5, 0.5)),
+                .center(),
         ];
-        result.align(vec2(0.5, 0.5))
+        result.center()
     }
     fn transition(&mut self) -> Option<geng::Transition> {
         if self.ready {

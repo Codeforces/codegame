@@ -65,7 +65,7 @@ impl<G: Game> PlayerConfig<G> for TcpPlayerConfig<G> {
                 Color::GRAY
             )
             .padding_right(8.0)
-            .align(vec2(0.5, 0.5)),
+            .center(),
             port_buttons
                 .next()
                 .unwrap()
@@ -76,7 +76,7 @@ impl<G: Game> PlayerConfig<G> for TcpPlayerConfig<G> {
                         *state.borrow_mut().1 = None;
                     }
                 }))
-                .align(vec2(0.5, 0.5)),
+                .center(),
             port_buttons
                 .next()
                 .unwrap()
@@ -87,11 +87,11 @@ impl<G: Game> PlayerConfig<G> for TcpPlayerConfig<G> {
                         *state.borrow_mut().1 = None;
                     }
                 }))
-                .align(vec2(0.5, 0.5)),
+                .center(),
         ];
         let text =
             ui::text(status_text, &self.theme.font, 16.0, status_color).align(vec2(0.5, 1.0));
-        Box::new(ui::column![port_config.align(vec2(0.5, 0.5)), text])
+        Box::new(ui::column![port_config.center(), text])
     }
     fn ready(&mut self) -> bool {
         if self.player.is_none() {
