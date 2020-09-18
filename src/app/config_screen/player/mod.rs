@@ -19,45 +19,33 @@ pub(crate) struct PlayerConfigWidget<G: Game> {
     options: Rc<Vec<Box<dyn Fn() -> Box<dyn PlayerConfig<G>>>>>,
     current_config: Box<dyn PlayerConfig<G>>,
     current_config_index: usize,
-    config_switch: Option<usize>,
-    button: ui::TextButton,
+    button: ui::Button,
 }
 
 impl<G: Game> PlayerConfigWidget<G> {
     pub fn new(
-        geng: &Rc<Geng>,
         theme: &Rc<ui::Theme>,
         options: &Rc<Vec<Box<dyn Fn() -> Box<dyn PlayerConfig<G>>>>>,
         default_option: usize,
     ) -> Self {
         let current_config = options[default_option]();
-        let button_text = current_config.name().to_owned();
         Self {
             theme: theme.clone(),
             options: options.clone(),
             current_config,
             current_config_index: default_option,
-            config_switch: None,
-            button: ui::TextButton::new(geng, theme, button_text, 32.0),
+            button: ui::Button::new(),
         }
     }
     pub fn ui<'a>(&'a mut self) -> impl ui::Widget + 'a {
         use ui::*;
-        if let Some(index) = self.config_switch.take() {
-            self.current_config = self.options[index]();
-            self.button.text = self.current_config.name().to_owned();
+        if self.button.clicked() {
+            self.current_config_index = (self.current_config_index + 1) % self.options.len();
+            self.current_config = self.options[self.current_config_index]();
         }
+        let current_config_name = self.current_config.name().to_owned();
         ui::column![
-            self.button
-                .ui(Box::new({
-                    let new_config = (self.current_config_index + 1) % self.options.len();
-                    let config_index = &mut self.current_config_index;
-                    let config_switch = &mut self.config_switch;
-                    move || {
-                        *config_index = new_config;
-                        *config_switch = Some(new_config);
-                    }
-                }))
+            ui::Button::text(&mut self.button, current_config_name, &self.theme)
                 .center()
                 .uniform_padding(8.0),
             self.current_config.ui(),

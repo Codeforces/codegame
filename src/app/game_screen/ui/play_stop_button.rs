@@ -1,41 +1,37 @@
 use super::*;
 
 pub struct PlayStopButton {
-    button: ui::TextureButton,
+    theme: Rc<ui::Theme>,
+    button: ui::Button,
     paused: Rc<Cell<bool>>,
-    play_texture: Rc<ugli::Texture>,
-    pause_texture: Rc<ugli::Texture>,
-    last_paused: bool,
+    play_texture: ugli::Texture,
+    pause_texture: ugli::Texture,
 }
 
 impl PlayStopButton {
-    pub fn new(context: &Rc<Geng>, theme: &Rc<ui::Theme>, paused: &Rc<Cell<bool>>) -> Self {
-        let play_texture = Rc::new(Self::create_play_texture(context));
-        let pause_texture = Rc::new(Self::create_pause_texture(context));
-        let button = ui::TextureButton::new(context, theme, &play_texture);
+    pub fn new(theme: &Rc<ui::Theme>, paused: &Rc<Cell<bool>>) -> Self {
         Self {
-            button,
+            theme: theme.clone(),
+            button: ui::Button::new(),
             paused: paused.clone(),
-            play_texture,
-            pause_texture,
-            last_paused: true,
+            play_texture: Self::create_play_texture(theme.geng()),
+            pause_texture: Self::create_pause_texture(theme.geng()),
         }
     }
     pub fn ui<'a>(&'a mut self) -> impl ui::Widget + 'a {
         use ui::*;
         let paused = &self.paused;
-        if paused.get() != self.last_paused {
-            self.last_paused = paused.get();
-            self.button.swap(if paused.get() {
+        ui::Button::texture(
+            (&mut self.button).on_click(move || paused.set(!paused.get())),
+            if self.paused.get() {
                 &self.play_texture
             } else {
                 &self.pause_texture
-            });
-        }
-        self.button
-            .ui(Box::new(move || paused.set(!paused.get())))
-            .fixed_size(vec2(UI_SIZE, UI_SIZE))
-            .uniform_padding(UI_PADDING)
+            },
+            &self.theme,
+        )
+        .fixed_size(vec2(UI_SIZE, UI_SIZE))
+        .uniform_padding(UI_PADDING)
     }
     fn create_play_texture(context: &Rc<Geng>) -> ugli::Texture {
         create_texture(context, |framebuffer| {

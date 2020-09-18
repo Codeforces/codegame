@@ -2,27 +2,21 @@ use super::*;
 
 #[derive(Clone)]
 pub struct EmptyPlayerConfig {
-    geng: Rc<Geng>,
     theme: Rc<ui::Theme>,
 }
 
 impl EmptyPlayerConfig {
-    pub fn new(geng: &Rc<Geng>, theme: &Rc<ui::Theme>) -> Self {
+    pub fn new(theme: &Rc<ui::Theme>) -> Self {
         Self {
-            geng: geng.clone(),
             theme: theme.clone(),
         }
     }
-    pub fn constructor<G: Game>(
-        geng: &Rc<Geng>,
-        theme: &Rc<ui::Theme>,
-    ) -> Box<dyn Fn() -> Box<dyn PlayerConfig<G>>>
+    pub fn constructor<G: Game>(theme: &Rc<ui::Theme>) -> Box<dyn Fn() -> Box<dyn PlayerConfig<G>>>
     where
         G::Action: Default,
     {
-        let geng = geng.clone();
         let theme = theme.clone();
-        Box::new(move || Box::new(Self::new(&geng, &theme)))
+        Box::new(move || Box::new(Self::new(&theme)))
     }
 }
 

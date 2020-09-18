@@ -129,7 +129,7 @@ where
             self.renderer.default_tps(),
         );
         self.ui_controller
-            .update(self.ui.ui(self.renderer.default_tps()), delta_time);
+            .update(&mut self.ui.ui(self.renderer.default_tps()), delta_time);
 
         for event in self.history.go_to(self.current_tick, process_events) {
             self.renderer.process_event(&event);
@@ -141,12 +141,12 @@ where
         let state = self.history.current_state();
         self.renderer.draw(state, framebuffer);
         self.ui_controller
-            .draw(self.ui.ui(self.renderer.default_tps()), framebuffer);
+            .draw(&mut self.ui.ui(self.renderer.default_tps()), framebuffer);
     }
     fn handle_event(&mut self, event: geng::Event) {
         if !self
             .ui_controller
-            .handle_event(self.ui.ui(self.renderer.default_tps()), event.clone())
+            .handle_event(&mut self.ui.ui(self.renderer.default_tps()), event.clone())
         {
             if !match event {
                 geng::Event::KeyDown { key } => match key {

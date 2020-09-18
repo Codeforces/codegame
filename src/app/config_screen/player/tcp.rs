@@ -5,12 +5,12 @@ type TcpPlayerFuture<G> = dyn Future<Output = Result<TcpPlayer<G>, std::io::Erro
 pub struct TcpPlayerConfig<G: Game> {
     theme: Rc<ui::Theme>,
     options: TcpPlayerOptions,
-    port_buttons: [ui::TextButton; 2],
+    port_buttons: [ui::Button; 2],
     player: Option<Pin<Box<futures::future::MaybeDone<Pin<Box<TcpPlayerFuture<G>>>>>>>,
 }
 
 impl<G: Game> TcpPlayerConfig<G> {
-    pub fn new(geng: &Rc<Geng>, theme: &Rc<ui::Theme>) -> Self {
+    pub fn new(theme: &Rc<ui::Theme>) -> Self {
         Self {
             theme: theme.clone(),
             options: TcpPlayerOptions {
@@ -20,20 +20,13 @@ impl<G: Game> TcpPlayerConfig<G> {
                 timeout: None,
                 token: None,
             },
-            port_buttons: [
-                ui::TextButton::new(geng, theme, "<".to_owned(), 24.0),
-                ui::TextButton::new(geng, theme, ">".to_owned(), 24.0),
-            ],
+            port_buttons: [ui::Button::new(), ui::Button::new()],
             player: None,
         }
     }
-    pub fn constructor(
-        geng: &Rc<Geng>,
-        theme: &Rc<ui::Theme>,
-    ) -> Box<dyn Fn() -> Box<dyn PlayerConfig<G>>> {
-        let geng = geng.clone();
+    pub fn constructor(theme: &Rc<ui::Theme>) -> Box<dyn Fn() -> Box<dyn PlayerConfig<G>>> {
         let theme = theme.clone();
-        Box::new(move || Box::new(Self::new(&geng, &theme)))
+        Box::new(move || Box::new(Self::new(&theme)))
     }
 }
 
@@ -55,45 +48,32 @@ impl<G: Game> PlayerConfig<G> for TcpPlayerConfig<G> {
         } else {
             ("", Color::WHITE)
         };
-        let state = Rc::new(RefCell::new((&mut self.options.port, &mut self.player)));
         let mut port_buttons = self.port_buttons.iter_mut();
         let port_config = ui::row![
             ui::Text::new(
-                format!("{}: {}", translate("Port"), *state.borrow().0),
+                format!("{}: {}", translate("Port"), self.options.port),
                 &self.theme.font,
                 16.0,
                 Color::GRAY
             )
             .padding_right(8.0)
             .center(),
-            port_buttons
-                .next()
-                .unwrap()
-                .ui(Box::new({
-                    let state = state.clone();
-                    move || {
-                        *state.borrow_mut().0 -= 1;
-                        *state.borrow_mut().1 = None;
-                    }
-                }))
-                .center(),
-            port_buttons
-                .next()
-                .unwrap()
-                .ui(Box::new({
-                    let state = state.clone();
-                    move || {
-                        *state.borrow_mut().0 += 1;
-                        *state.borrow_mut().1 = None;
-                    }
-                }))
-                .center(),
+            ui::Button::text(port_buttons.next().unwrap(), "<", &self.theme).center(),
+            ui::Button::text(port_buttons.next().unwrap(), ">", &self.theme).center(),
         ];
         let text =
             ui::Text::new(status_text, &self.theme.font, 16.0, status_color).align(vec2(0.5, 1.0));
         Box::new(ui::column![port_config.center(), text])
     }
     fn ready(&mut self) -> bool {
+        if self.port_buttons[0].clicked() {
+            self.options.port -= 1;
+            self.player = None;
+        }
+        if self.port_buttons[1].clicked() {
+            self.options.port += 1;
+            self.player = None;
+        }
         if self.player.is_none() {
             self.player = Some(Box::pin(futures::future::maybe_done(
                 TcpPlayer::new(self.options.clone()).boxed_local(),

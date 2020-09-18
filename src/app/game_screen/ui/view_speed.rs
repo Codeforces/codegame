@@ -5,7 +5,6 @@ pub fn view_speed(modifier: f64, default_tps: f64) -> f64 {
 }
 
 pub struct ViewSpeedControl {
-    context: Rc<Geng>,
     core: ui::WidgetCore,
     theme: Rc<ui::Theme>,
     slider: ui::Slider,
@@ -16,12 +15,11 @@ pub struct ViewSpeedControl {
 impl ViewSpeedControl {
     pub const MODIFIER_RANGE: RangeInclusive<f64> = -2.0..=2.0;
 
-    pub fn new(context: &Rc<Geng>, theme: &Rc<ui::Theme>, modifier: &Rc<Cell<f64>>) -> Self {
+    pub fn new(theme: &Rc<ui::Theme>, modifier: &Rc<Cell<f64>>) -> Self {
         Self {
-            context: context.clone(),
             core: ui::WidgetCore::new(),
             theme: theme.clone(),
-            slider: ui::Slider::new(context, theme),
+            slider: ui::Slider::new(theme),
             modifier: modifier.clone(),
             text: String::new(),
         }
@@ -59,16 +57,20 @@ impl ViewSpeedControl {
         ui::stack![
             ui::column(vec![
                 if show_slider {
-                    Box::new(self.slider.ui(
-                        modifier.get(),
-                        Self::MODIFIER_RANGE,
-                        Box::new(move |new_value| modifier.set(new_value)),
-                    ))
+                    Box::new(
+                        self.slider
+                            .ui(
+                                modifier.get(),
+                                Self::MODIFIER_RANGE,
+                                Box::new(move |new_value| modifier.set(new_value)),
+                            )
+                            .fixed_size(vec2(UI_SIZE * 3.0, UI_SIZE / 2.0)),
+                    )
                 } else {
                     Box::new(
                         ui::Text::new(
                             translate("view speed"),
-                            self.context.default_font(),
+                            &self.theme.font,
                             UI_SIZE as f32 / 2.0,
                             self.theme.usable_color,
                         )
@@ -78,7 +80,7 @@ impl ViewSpeedControl {
                 Box::new(
                     ui::Text::new(
                         &self.text,
-                        self.context.default_font(),
+                        &self.theme.font,
                         UI_SIZE as f32 / 2.0,
                         if slider_used {
                             self.theme.hover_color

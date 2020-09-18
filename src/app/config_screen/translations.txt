@@ -48,3 +48,9 @@ ru=повторить игру
 
 en=Select file to repeat
 ru=Выберите файл для повтора
+
+en=add player
+ru=добавить игрока
+
+en=remove player
+ru=убрать игрока

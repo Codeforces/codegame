@@ -52,11 +52,11 @@ impl UI {
         let theme = Rc::new(ui::Theme::default(geng));
         let theme = &theme;
         Self {
-            play_stop_button: PlayStopButton::new(geng, theme, paused),
-            fullscreen_button: FullscreenButton::new(geng, theme),
-            timeline: Timeline::new(geng, theme),
-            view_speed: ViewSpeedControl::new(geng, theme, view_speed_modifier),
-            volume: VolumeControl::new(geng, theme, volume),
+            play_stop_button: PlayStopButton::new(theme, paused),
+            fullscreen_button: FullscreenButton::new(theme),
+            timeline: Timeline::new(theme),
+            view_speed: ViewSpeedControl::new(theme, view_speed_modifier),
+            volume: VolumeControl::new(theme, volume),
         }
     }
 

@@ -1,7 +1,6 @@
 use super::*;
 
 pub struct VolumeControl {
-    context: Rc<Geng>,
     core: ui::WidgetCore,
     theme: Rc<ui::Theme>,
     slider: ui::Slider,
@@ -10,12 +9,11 @@ pub struct VolumeControl {
 }
 
 impl VolumeControl {
-    pub fn new(context: &Rc<Geng>, theme: &Rc<ui::Theme>, value: &Rc<Cell<f64>>) -> Self {
+    pub fn new(theme: &Rc<ui::Theme>, value: &Rc<Cell<f64>>) -> Self {
         Self {
-            context: context.clone(),
             core: ui::WidgetCore::new(),
             theme: theme.clone(),
-            slider: ui::Slider::new(context, theme),
+            slider: ui::Slider::new(theme),
             value: value.clone(),
             value_text: String::new(),
         }
@@ -35,16 +33,20 @@ impl VolumeControl {
         ui::stack![
             ui::column(vec![
                 if show_slider {
-                    Box::new(self.slider.ui(
-                        value.get(),
-                        0.0..=1.0,
-                        Box::new(move |new_value| value.set(new_value)),
-                    ))
+                    Box::new(
+                        self.slider
+                            .ui(
+                                value.get(),
+                                0.0..=1.0,
+                                Box::new(move |new_value| value.set(new_value)),
+                            )
+                            .fixed_size(vec2(UI_SIZE * 2.0, UI_SIZE / 2.0)),
+                    )
                 } else {
                     Box::new(
                         ui::Text::new(
                             translate("volume"),
-                            self.context.default_font(),
+                            &self.theme.font,
                             UI_SIZE as f32 / 2.0,
                             self.theme.usable_color,
                         )
@@ -54,7 +56,7 @@ impl VolumeControl {
                 Box::new(
                     ui::Text::new(
                         &self.value_text,
-                        self.context.default_font(),
+                        &self.theme.font,
                         UI_SIZE as f32 / 2.0,
                         if slider_used {
                             self.theme.hover_color
@@ -67,7 +69,7 @@ impl VolumeControl {
             ]),
             &mut self.core,
         ]
-        .fixed_size(vec2(UI_SIZE * 3.0, UI_SIZE))
+        .fixed_size(vec2(UI_SIZE * 2.0, UI_SIZE))
         .uniform_padding(UI_PADDING)
     }
 }

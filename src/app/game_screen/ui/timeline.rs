@@ -7,9 +7,9 @@ struct TimeLabel {
 }
 
 impl TimeLabel {
-    fn new(context: &Rc<Geng>) -> Self {
+    fn new(theme: &Rc<ui::Theme>) -> Self {
         Self {
-            font: context.default_font().clone(),
+            font: theme.font.clone(),
             tick_text: String::new(),
             time_text: String::new(),
         }
@@ -56,10 +56,10 @@ impl Deref for Timeline {
 }
 
 impl Timeline {
-    pub fn new(context: &Rc<Geng>, theme: &Rc<ui::Theme>) -> Self {
+    pub fn new(theme: &Rc<ui::Theme>) -> Self {
         Self {
-            slider: ui::Slider::new(context, theme),
-            label: TimeLabel::new(context),
+            slider: ui::Slider::new(theme),
+            label: TimeLabel::new(theme),
             time: 0.0,
             max_time: 1.0,
             ticks_per_second: 1.0,
