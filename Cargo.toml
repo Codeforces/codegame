@@ -15,7 +15,7 @@ client-gen = ["trans-gen", "heck"]
 [dependencies]
 batbox = "0.6.0-alpha"
 geng = { version = "0.7.0-alpha", optional = true }
-trans-gen = { version = "0.3.0", optional = true }
+trans-gen = { version = "0.4.0-alpha", optional = true }
 heck = { version = "0.3", optional = true }
 serde_json = "1"
 serde = "1"
