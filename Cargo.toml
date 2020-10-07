@@ -1,6 +1,6 @@
 [package]
 name = "codegame"
-version = "0.7.0-alpha.12"
+version = "0.7.0-alpha.13"
 authors = ["kuviman <kuviman@gmail.com>"]
 description = "CodeGame framework"
 license = "MIT"
@@ -13,8 +13,8 @@ rendering = ["geng"]
 client-gen = ["trans-gen", "heck"]
 
 [dependencies]
-batbox = "0.5.0"
-geng = { version = "0.6.0", optional = true }
+batbox = "0.6.0-alpha"
+geng = { version = "0.7.0-alpha", optional = true }
 trans-gen = { version = "0.3.0", optional = true }
 heck = { version = "0.3", optional = true }
 serde_json = "1"
