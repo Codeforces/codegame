@@ -26,7 +26,7 @@ impl<G: Game, T: RendererData<G>> History<G, T> {
                     let history = History::new(initial_state.clone());
                     let mut current_state = initial_state;
                     let mut tick_handler = history.tick_handler();
-                    while !reader.fill_buf()?.is_empty() {
+                    while !BufRead::fill_buf(&mut reader)?.is_empty() {
                         let events = Vec::<G::Event>::read_from(&mut reader)?;
                         let delta = G::Delta::read_from(&mut reader)?;
                         current_state.update(&delta);
