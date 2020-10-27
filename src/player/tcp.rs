@@ -98,8 +98,8 @@ impl<G: Game> Player<G> for TcpPlayer<G> {
     fn get_action(
         &mut self,
         player_view: &G::PlayerView,
-        client_data_handler: Option<&dyn Fn(G::ClientData)>,
+        debug_data_handler: Option<&dyn Fn(G::DebugData)>,
     ) -> Result<G::Action, PlayerError> {
-        Player::<G>::get_action(&mut self.inner, player_view, client_data_handler)
+        Player::<G>::get_action(&mut self.inner, player_view, debug_data_handler)
     }
 }

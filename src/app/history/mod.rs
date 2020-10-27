@@ -126,8 +126,8 @@ impl<T: Diff> Window<HistorySnapshot<T>> {
 struct HistorySharedState<G: Game, T: RendererData<G>> {
     game: DiffHistory<G>,
     renderer_data: DiffHistory<T>,
-    last_client_data: HashMap<usize, Vec<G::ClientData>>,
-    client_data: Vec<Arc<HashMap<usize, Vec<G::ClientData>>>>,
+    last_debug_data: HashMap<usize, Vec<G::DebugData>>,
+    debug_data: Vec<Arc<HashMap<usize, Vec<G::DebugData>>>>,
     events: Vec<Arc<Vec<G::Event>>>,
 }
 
@@ -137,8 +137,8 @@ impl<G: Game, T: RendererData<G>> HistorySharedState<G, T> {
         Self {
             game: DiffHistory::new(initial_game),
             renderer_data: DiffHistory::new(initial_renderer_data),
-            last_client_data: HashMap::new(),
-            client_data: Vec::new(),
+            last_debug_data: HashMap::new(),
+            debug_data: Vec::new(),
             events: Vec::new(),
         }
     }
@@ -148,19 +148,19 @@ impl<G: Game, T: RendererData<G>> HistorySharedState<G, T> {
             .push_mut(|data| RendererData::update(data, &events, &prev_game, &game));
         self.game.push(game);
         self.events.push(Arc::new(events));
-        self.client_data.push(Arc::new(mem::replace(
-            &mut self.last_client_data,
+        self.debug_data.push(Arc::new(mem::replace(
+            &mut self.last_debug_data,
             HashMap::new(),
         )));
     }
-    fn push_client_data(&mut self, player_index: usize, client_data: G::ClientData) {
-        if !self.last_client_data.contains_key(&player_index) {
-            self.last_client_data.insert(player_index, Vec::new());
+    fn push_debug_data(&mut self, player_index: usize, debug_data: G::DebugData) {
+        if !self.last_debug_data.contains_key(&player_index) {
+            self.last_debug_data.insert(player_index, Vec::new());
         }
-        self.last_client_data
+        self.last_debug_data
             .get_mut(&player_index)
             .unwrap()
-            .push(client_data);
+            .push(debug_data);
     }
     fn len(&self) -> usize {
         self.game.len()
@@ -171,8 +171,8 @@ pub struct History<G: Game, T: RendererData<G>> {
     shared_state: Arc<Mutex<HistorySharedState<G, T>>>,
     game: Window<HistorySnapshot<G>>,
     renderer_data: Window<HistorySnapshot<T>>,
-    client_data: Window<Arc<HashMap<usize, Vec<G::ClientData>>>>,
-    client_data_timer: Timer,
+    debug_data: Window<Arc<HashMap<usize, Vec<G::DebugData>>>>,
+    debug_data_timer: Timer,
     prev_events: Arc<Vec<G::Event>>,
     current_tick_time: f64,
 }
@@ -182,9 +182,9 @@ impl<G: Game, T: RendererData<G>> History<G, T> {
         let shared_state = HistorySharedState::new(initial_game_state);
         let game = Window::new(&shared_state.game);
         let renderer_data = Window::new(&shared_state.renderer_data);
-        let client_data = Window {
+        let debug_data = Window {
             prev: None,
-            current: Arc::new(shared_state.last_client_data.clone()),
+            current: Arc::new(shared_state.last_debug_data.clone()),
         };
         let prev_events = shared_state
             .events
@@ -196,8 +196,8 @@ impl<G: Game, T: RendererData<G>> History<G, T> {
             shared_state: Arc::new(Mutex::new(shared_state)),
             game,
             renderer_data,
-            client_data,
-            client_data_timer: Timer::new(),
+            debug_data,
+            debug_data_timer: Timer::new(),
             prev_events,
             current_tick_time,
         }
@@ -207,17 +207,17 @@ impl<G: Game, T: RendererData<G>> History<G, T> {
             current: CurrentRenderState {
                 game: &self.game.current.value,
                 renderer_data: &self.renderer_data.current.value,
-                client_data: &self.client_data.current,
+                debug_data: &self.debug_data.current,
             },
             prev: match (
                 &self.game.prev,
                 &self.renderer_data.prev,
-                &self.client_data.prev,
+                &self.debug_data.prev,
             ) {
-                (Some(game), Some(renderer_data), Some(client_data)) => Some(CurrentRenderState {
+                (Some(game), Some(renderer_data), Some(debug_data)) => Some(CurrentRenderState {
                     game: &game.value,
                     renderer_data: &renderer_data.value,
-                    client_data,
+                    debug_data,
                 }),
                 _ => None,
             },
@@ -245,32 +245,32 @@ impl<G: Game, T: RendererData<G>> History<G, T> {
         }
 
         if tick != self.game.current.tick {
-            self.client_data_timer = Timer::new();
+            self.debug_data_timer = Timer::new();
         }
-        if let Some(data) = shared_state.client_data.get(tick) {
-            self.client_data = Window {
+        if let Some(data) = shared_state.debug_data.get(tick) {
+            self.debug_data = Window {
                 current: data.clone(),
                 prev: if tick > 0 {
-                    Some(shared_state.client_data[tick - 1].clone())
+                    Some(shared_state.debug_data[tick - 1].clone())
                 } else {
                     None
                 },
             };
         } else {
-            if tick > 0 && self.client_data_timer.elapsed() < 0.5 {
-                self.client_data = Window {
-                    current: shared_state.client_data[tick - 1].clone(),
+            if tick > 0 && self.debug_data_timer.elapsed() < 0.5 {
+                self.debug_data = Window {
+                    current: shared_state.debug_data[tick - 1].clone(),
                     prev: if tick > 1 {
-                        Some(shared_state.client_data[tick - 2].clone())
+                        Some(shared_state.debug_data[tick - 2].clone())
                     } else {
                         None
                     },
                 };
             } else {
-                self.client_data = Window {
-                    current: Arc::new(shared_state.last_client_data.clone()),
+                self.debug_data = Window {
+                    current: Arc::new(shared_state.last_debug_data.clone()),
                     prev: if tick > 0 {
-                        Some(shared_state.client_data[tick - 1].clone())
+                        Some(shared_state.debug_data[tick - 1].clone())
                     } else {
                         None
                     },
@@ -298,13 +298,13 @@ impl<G: Game, T: RendererData<G>> History<G, T> {
             shared_state.lock().unwrap().push(game.clone(), events);
         }
     }
-    pub fn client_data_handler(&self) -> impl Fn(usize, G::ClientData) + Send + 'static {
+    pub fn debug_data_handler(&self) -> impl Fn(usize, G::DebugData) + Send + 'static {
         let shared_state = self.shared_state.clone();
-        move |player_index, client_data| {
+        move |player_index, debug_data| {
             shared_state
                 .lock()
                 .unwrap()
-                .push_client_data(player_index, client_data);
+                .push_debug_data(player_index, debug_data);
         }
     }
 }

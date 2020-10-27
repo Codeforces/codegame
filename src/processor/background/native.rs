@@ -12,7 +12,7 @@ impl<G: Game> BackgroundGameProcessor<G> {
     pub fn new(
         mut processor: GameProcessor<G>,
         mut tick_handler: impl FnMut(&G, Vec<G::Event>) + Send + 'static,
-        client_data_handler: Option<impl Fn(usize, G::ClientData) + Send + 'static>,
+        debug_data_handler: Option<impl Fn(usize, G::DebugData) + Send + 'static>,
     ) -> Self {
         let ticks_to_process = Arc::new(AtomicUsize::new(0));
         let thread = std::thread::spawn({
@@ -26,7 +26,7 @@ impl<G: Game> BackgroundGameProcessor<G> {
                                 == ticks
                         {
                             let events = processor
-                                .process_tick(client_data_handler.as_ref().map(|f| f as _));
+                                .process_tick(debug_data_handler.as_ref().map(|f| f as _));
                             tick_handler(processor.game(), events);
                             ticks_to_process.fetch_min(ticks - 1, Ordering::SeqCst);
                             break;
