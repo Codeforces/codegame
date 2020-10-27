@@ -26,6 +26,17 @@ struct Runner {
     writer: Box<dyn std::io::Write>,
 }
 
+struct Debug<'a>(&'a mut dyn std::io::Write);
+
+impl Debug<'_> {
+    fn send(&mut self, debug_data: model::DebugData) {
+        use trans::Trans;
+        model::ClientMessage::DebugDataMessage { data: debug_data }
+            .write_to(&mut self.0)
+            .expect("Failed to write custom debug data");
+    }
+}
+
 impl Runner {
     fn new(args: &Args) -> std::io::Result<Self> {
         use std::io::Write;
@@ -52,7 +63,7 @@ impl Runner {
                 None => break,
             };
             let message = model::ClientMessage::ActionMessage {
-                action: strategy.get_action(&player_view),
+                action: strategy.get_action(&player_view, &mut Debug(&mut self.writer)),
             };
             message.write_to(&mut self.writer)?;
             self.writer.flush()?;

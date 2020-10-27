@@ -5,6 +5,7 @@ const Socket = require('net').Socket;
 
 const model = require('./model/index');
 const MyStrategy = require('./my-strategy').MyStrategy;
+const Debug = require('./debug').Debug;
 
 class Runner {
     constructor(host, port, token) {
@@ -39,12 +40,13 @@ class Runner {
             await this.connect();
             let message, playerView, actions;
             const strategy = new MyStrategy();
+            const debug = new Debug(this.streamWrapper);
             while (true) {
                 message = await model.ServerMessage.readFrom(this.streamWrapper);
                 if (message.playerView === null) {
                     break;
                 }
-                await (new model.ClientMessage.ActionMessage(await strategy.getAction(message.playerView)).writeTo(this.streamWrapper));
+                await (new model.ClientMessage.ActionMessage(await strategy.getAction(message.playerView, debug)).writeTo(this.streamWrapper));
             }
         } catch (e) {
             console.error(e);

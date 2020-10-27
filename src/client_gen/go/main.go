@@ -35,13 +35,16 @@ func NewRunner(host string, port uint16, token string) Runner {
 
 func (runner Runner) Run() {
     myStrategy := NewMyStrategy()
+    debug := Debug {
+        Writer: runner.writer,
+    }
     for {
         message := ReadServerMessage(runner.reader)
         if message.PlayerView == nil {
             break
         }
         ClientMessageActionMessage {
-            Action: myStrategy.getAction(*message.PlayerView),
+            Action: myStrategy.getAction(*message.PlayerView, debug),
         }.Write(runner.writer)
         err := runner.writer.Flush()
         if err != nil {

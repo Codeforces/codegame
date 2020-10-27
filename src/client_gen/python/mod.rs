@@ -8,6 +8,7 @@ impl<G: Game> ClientGen<G> for Generator {
         let mut gen = Self::new(options.name, options.version);
         gen.add(&trans::Schema::of::<ClientMessage<G>>());
         gen.add(&trans::Schema::of::<ServerMessage<G>>());
+        gen.add(&trans::Schema::of::<G::DebugData>());
         gen.result().write_to(options.target_dir)?;
         write_file(
             options.target_dir.join("Dockerfile"),
@@ -24,6 +25,10 @@ impl<G: Game> ClientGen<G> for Generator {
         write_file(
             options.target_dir.join("main.py"),
             project_file!(options, "main.py"),
+        )?;
+        write_file(
+            options.target_dir.join("debug.py"),
+            project_file!(options, "debug.py"),
         )?;
         write_file(
             options.target_dir.join("my_strategy.py"),

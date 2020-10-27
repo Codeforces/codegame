@@ -25,6 +25,7 @@ namespace ProjectName
         public void Run()
         {
             var myStrategy = new MyStrategy();
+            var debug = new Debug(writer);
             while (true)
             {
                 Model.ServerMessage message = Model.ServerMessage.ReadFrom(reader);
@@ -32,7 +33,7 @@ namespace ProjectName
                 {
                     break;
                 }
-                new Model.ClientMessage.ActionMessage(myStrategy.GetAction(message.PlayerView.Value)).WriteTo(writer);
+                new Model.ClientMessage.ActionMessage(myStrategy.GetAction(message.PlayerView.Value, debug)).WriteTo(writer);
                 writer.Flush();
             }
         }

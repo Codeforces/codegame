@@ -23,10 +23,11 @@ internal constructor(host: String, port: Int, token: String) {
     @Throws(IOException::class)
     internal fun run() {
         val myStrategy = MyStrategy()
+        val debug = Debug(outputStream)
         while (true) {
             val message = model.ServerMessage.readFrom(inputStream)
             val playerView = message.playerView ?: break
-            model.ClientMessage.ActionMessage(myStrategy.getAction(playerView)).writeTo(outputStream)
+            model.ClientMessage.ActionMessage(myStrategy.getAction(playerView, debug)).writeTo(outputStream)
             outputStream.flush()
         }
     }

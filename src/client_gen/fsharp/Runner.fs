@@ -19,13 +19,14 @@ module Runner =
 
         member this.run =
             let myStrategy = new MyStrategy()
+            let debug = new Debug(writer)
 
             let rec loop() = 
                 let message = Model.ServerMessage.readFrom reader
                 
                 match message.PlayerView with
                     | Some playerView ->                                                     
-                        (Model.ClientMessage.ActionMessage {Action = myStrategy.getAction(playerView)}).writeTo writer
+                        (Model.ClientMessage.ActionMessage {Action = myStrategy.getAction(playerView, debug)}).writeTo writer
                         writer.Flush()
                         loop()
                     | None -> ()

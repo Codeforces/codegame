@@ -24,13 +24,14 @@ public class Runner {
 
     void run() throws IOException {
         MyStrategy myStrategy = new MyStrategy();
+        Debug debug = new Debug(outputStream);
         while (true) {
             model.ServerMessage message = model.ServerMessage.readFrom(inputStream);
             model.PlayerView playerView = message.getPlayerView();
             if (playerView == null) {
                 break;
             }
-            new model.ClientMessage.ActionMessage(myStrategy.getAction(playerView)).writeTo(outputStream);
+            new model.ClientMessage.ActionMessage(myStrategy.getAction(playerView, debug)).writeTo(outputStream);
             outputStream.flush();
         }
     }

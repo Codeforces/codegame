@@ -9,6 +9,7 @@ impl<G: Game> ClientGen<G> for Generator {
         let src_path = options.target_dir.join("src").join("main").join("scala");
         gen.add(&trans::Schema::of::<ClientMessage<G>>());
         gen.add(&trans::Schema::of::<ServerMessage<G>>());
+        gen.add(&trans::Schema::of::<G::DebugData>());
         gen.result().write_to(&src_path)?;
         write_file(
             options.target_dir.join("Dockerfile"),
@@ -25,6 +26,10 @@ impl<G: Game> ClientGen<G> for Generator {
         write_file(
             src_path.join("MyStrategy.scala"),
             &project_file!(options, "MyStrategy.scala"),
+        )?;
+        write_file(
+            src_path.join("Debug.scala"),
+            &project_file!(options, "Debug.scala"),
         )?;
         write_file(
             src_path.join("Runner.scala"),

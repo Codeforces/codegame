@@ -1,6 +1,7 @@
 import model
 from stream_wrapper import StreamWrapper
 from my_strategy import MyStrategy
+from debug import Debug
 import socket
 import sys
 
@@ -19,13 +20,14 @@ class Runner:
 
     def run(self):
         strategy = MyStrategy()
+        debug = Debug(self.writer)
 
         while True:
             message = model.ServerMessage.read_from(self.reader)
             if message.player_view is None:
                 break
             model.ClientMessage.ActionMessage(strategy.get_action(
-                message.player_view)).write_to(self.writer)
+                message.player_view, debug)).write_to(self.writer)
             self.writer.flush()
 
 

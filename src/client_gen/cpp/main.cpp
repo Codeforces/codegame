@@ -1,3 +1,4 @@
+#include "Debug.hpp"
 #include "MyStrategy.hpp"
 #include "TcpStream.hpp"
 #include "model/Model.hpp"
@@ -16,6 +17,7 @@ public:
     }
     void run()
     {
+        Debug debug(outputStream);
         MyStrategy myStrategy;
         while (true) {
             auto message = ServerMessage::readFrom(*inputStream);
@@ -23,7 +25,7 @@ public:
             if (!playerView) {
                 break;
             }
-            ClientMessage::ActionMessage(myStrategy.getAction(*playerView)).writeTo(*outputStream);
+            ClientMessage::ActionMessage(myStrategy.getAction(*playerView, debug)).writeTo(*outputStream);
             outputStream->flush();
         }
     }

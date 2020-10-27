@@ -2,6 +2,7 @@ require 'socket'
 require_relative 'stream_wrapper'
 require_relative 'model'
 require_relative 'my_strategy'
+require_relative 'debug'
 
 class SocketWrapper
     def initialize(socket)
@@ -40,6 +41,7 @@ class Runner
 
     def run()
         strategy = MyStrategy.new()
+        debug = Debug.new(@writer)
 
         while true
             message = ServerMessage.read_from(@reader)
@@ -47,7 +49,7 @@ class Runner
             if player_view == nil
                 break
             end
-            ClientMessage::ActionMessage.new(strategy.get_action(player_view)).write_to(@writer)
+            ClientMessage::ActionMessage.new(strategy.get_action(player_view, debug)).write_to(@writer)
             @writer.flush()
         end
     end

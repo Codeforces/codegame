@@ -8,6 +8,7 @@ impl<G: Game> ClientGen<G> for Generator {
         let mut gen = Self::new(options.name, options.version);
         gen.add(&trans::Schema::of::<ClientMessage<G>>());
         gen.add(&trans::Schema::of::<ServerMessage<G>>());
+        gen.add(&trans::Schema::of::<G::DebugData>());
         let result = gen.result();
         result.write_to(options.target_dir)?;
         write_file(
@@ -21,6 +22,10 @@ impl<G: Game> ClientGen<G> for Generator {
         write_file(
             options.target_dir.join("run.sh"),
             project_file!(options, "run.sh"),
+        )?;
+        write_file(
+            options.target_dir.join("Debug.fs"),
+            &project_file!(options, "Debug.fs"),
         )?;
         write_file(
             options.target_dir.join("Runner.fs"),
@@ -43,6 +48,7 @@ impl<G: Game> ClientGen<G> for Generator {
                             None
                         }
                     })
+                    .chain(std::iter::once("Debug.fs"))
                     .chain(std::iter::once("MyStrategy.fs"))
                     .chain(std::iter::once("Runner.fs"))
                     .map(|path| format!("<Compile Include=\"{}\" />", path))
