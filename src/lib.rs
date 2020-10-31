@@ -10,11 +10,13 @@ use prelude::*;
 mod app;
 #[cfg(feature = "client-gen")]
 pub mod client_gen;
+mod debug;
 mod player;
 mod processor;
 
 #[cfg(feature = "rendering")]
 pub use app::*;
+pub use debug::*;
 pub use player::*;
 pub use processor::*;
 

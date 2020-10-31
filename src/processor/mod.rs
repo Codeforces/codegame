@@ -110,7 +110,7 @@ impl<G: Game + 'static> GameProcessor<G> {
 
     pub(crate) fn process_tick(
         &mut self,
-        debug_data_handler: Option<&dyn Fn(usize, G::DebugData)>,
+        debug_interface: Option<&DebugInterface<G>>,
     ) -> Vec<G::Event> {
         assert!(!self.finished());
         let views: Vec<_> = (0..self.players.len())
@@ -127,10 +127,9 @@ impl<G: Game + 'static> GameProcessor<G> {
                         index,
                         player.get_action(
                             &view,
-                            debug_data_handler
-                                .map(move |f| (move |debug_data| f(index, debug_data)))
-                                .as_ref()
-                                .map(|f| f as _),
+                            debug_interface
+                                .map(|debug_interface| debug_interface.for_player(index))
+                                .as_ref(),
                         ),
                     )
                 })
