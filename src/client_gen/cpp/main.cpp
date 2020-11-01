@@ -27,7 +27,7 @@ public:
             } else if (auto finishMessage = std::dynamic_pointer_cast<ServerMessage::Finish>(message)) {
                 break;
             } else if (auto debugUpdateMessage = std::dynamic_pointer_cast<ServerMessage::DebugUpdate>(message)) {
-                myStrategy.debugUpdate(debug);
+                myStrategy.debugUpdate(debugUpdateMessage->playerView, debug);
             }
         }
     }

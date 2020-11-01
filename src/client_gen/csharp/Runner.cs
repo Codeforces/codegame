@@ -39,7 +39,7 @@ namespace ProjectName
                         running = false;
                         break;
                     case Model.ServerMessage.DebugUpdate message:
-                        myStrategy.DebugUpdate(debug);
+                        myStrategy.DebugUpdate(message.PlayerView, debug);
                         break;
                     default:
                         throw new Exception("Unexpected server message");

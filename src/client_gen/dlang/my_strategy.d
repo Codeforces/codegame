@@ -10,7 +10,7 @@ class MyStrategy
         throw new Error("Write your strategy here");
     }
 
-    void debugUpdate(Debugger debugger)
+    void debugUpdate(PlayerView playerView, Debugger debugger)
     {
     }
 }

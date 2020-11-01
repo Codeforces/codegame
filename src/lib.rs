@@ -138,7 +138,7 @@ pub enum ClientMessage<G: Game> {
 pub enum ServerMessage<G: Game> {
     GetAction { player_view: G::PlayerView },
     Finish {},
-    DebugUpdate {},
+    DebugUpdate { player_view: G::PlayerView },
 }
 
 #[cfg(feature = "rendering")]

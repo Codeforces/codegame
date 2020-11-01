@@ -77,7 +77,7 @@ class Runner
             }
             else if (auto debugUpdateMessage = cast(ServerMessage.DebugUpdate)(message))
             {
-                myStrategy.debugUpdate(debugger);
+                myStrategy.debugUpdate(debugUpdateMessage.playerView, debugger);
             }
             else
             {

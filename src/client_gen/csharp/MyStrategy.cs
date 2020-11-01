@@ -9,6 +9,6 @@ namespace ProjectName
             throw new System.NotImplementedException();
         }
 
-        public void DebugUpdate(Debug debug) { }
+        public void DebugUpdate(PlayerView playerView, Debug debug) { }
     }
 }

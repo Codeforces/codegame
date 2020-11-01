@@ -31,7 +31,7 @@ module Runner =
                     loop ()
                 | Model.ServerMessage.Finish message -> ()
                 | Model.ServerMessage.DebugUpdate message ->
-                    myStrategy.debugUpdate (debug)
+                    myStrategy.debugUpdate (message.PlayerView, debug)
                     loop ()
 
             loop ()

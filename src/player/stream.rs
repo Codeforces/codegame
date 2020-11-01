@@ -65,11 +65,15 @@ impl<G: Game> Player<G> for StreamPlayer<G> {
     }
     fn debug_update(
         &mut self,
+        player_view: &G::PlayerView,
         debug_interface: &PlayerDebugInterface<G>,
     ) -> Result<(), PlayerError> {
         let stream = self.stream.as_mut().expect("Called get_action after error");
         let mut debug_update = move || {
-            ServerMessage::<G>::DebugUpdate {}.write_to(&mut stream.writer)?;
+            ServerMessage::<G>::DebugUpdate {
+                player_view: player_view.clone(), // TODO: do not clone
+            }
+            .write_to(&mut stream.writer)?;
             stream.writer.flush()?;
             loop {
                 match ClientMessage::<G>::read_from(&mut stream.reader)? {

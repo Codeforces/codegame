@@ -13,5 +13,5 @@ impl MyStrategy {
     ) -> model::Action {
         todo!()
     }
-    pub fn debug_update(&mut self, debug: &mut Debug) {}
+    pub fn debug_update(&mut self, player_view: &model::PlayerView, debug: &mut Debug) {}
 }

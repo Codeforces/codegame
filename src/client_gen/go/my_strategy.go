@@ -14,4 +14,4 @@ func (strategy MyStrategy) getAction(playerView PlayerView, debug Debug) Action 
 	panic("Write your strategy here")
 }
 
-func (strategy MyStrategy) debugUpdate(debug Debug) {}
+func (strategy MyStrategy) debugUpdate(playerView PlayerView, debug Debug) {}

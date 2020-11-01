@@ -15,11 +15,12 @@ pub enum PlayerError {
 pub trait Player<G: Game>: Send {
     fn get_action(
         &mut self,
-        view: &G::PlayerView,
+        player_view: &G::PlayerView,
         debug_interface: Option<&PlayerDebugInterface<G>>,
     ) -> Result<G::Action, PlayerError>;
     fn debug_update(
         &mut self,
+        player_view: &G::PlayerView,
         debug_interface: &PlayerDebugInterface<G>,
     ) -> Result<(), PlayerError>;
 }
@@ -40,7 +41,11 @@ where
     ) -> Result<G::Action, PlayerError> {
         Ok(default())
     }
-    fn debug_update(&mut self, _: &PlayerDebugInterface<G>) -> Result<(), PlayerError> {
+    fn debug_update(
+        &mut self,
+        _: &G::PlayerView,
+        _: &PlayerDebugInterface<G>,
+    ) -> Result<(), PlayerError> {
         Ok(())
     }
 }
@@ -55,9 +60,10 @@ impl<G: Game, T: Player<G> + ?Sized> Player<G> for Box<T> {
     }
     fn debug_update(
         &mut self,
+        player_view: &G::PlayerView,
         debug_interface: &PlayerDebugInterface<G>,
     ) -> Result<(), PlayerError> {
-        (**self).debug_update(debug_interface)
+        (**self).debug_update(player_view, debug_interface)
     }
 }
 
@@ -76,7 +82,8 @@ impl<G: Game> Player<G> for ErroredPlayer {
     }
     fn debug_update(
         &mut self,
-        debug_interface: &PlayerDebugInterface<G>,
+        _: &G::PlayerView,
+        _: &PlayerDebugInterface<G>,
     ) -> Result<(), PlayerError> {
         Err(PlayerError::IOError(std::io::Error::new(
             std::io::ErrorKind::Other,

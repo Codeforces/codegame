@@ -34,7 +34,8 @@ public class Runner {
             } else if (message instanceof model.ServerMessage.Finish) {
                 break;
             } else if (message instanceof model.ServerMessage.DebugUpdate) {
-                myStrategy.debugUpdate(debug);
+                model.ServerMessage.DebugUpdate debugUpdateMessage = (model.ServerMessage.DebugUpdate) message;
+                myStrategy.debugUpdate(debugUpdateMessage.getPlayerView(), debug);
             } else {
                 throw new IOException("Unexpected server message");
             }

@@ -52,7 +52,7 @@ loop:
 		case ServerMessageFinish:
 			break loop
 		case ServerMessageDebugUpdate:
-			myStrategy.debugUpdate(debug)
+			myStrategy.debugUpdate(message.PlayerView, debug)
 		default:
 			panic("Unexpected server message")
 		}

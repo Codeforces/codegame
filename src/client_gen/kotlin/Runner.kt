@@ -32,7 +32,7 @@ internal constructor(host: String, port: Int, token: String) {
             } else if (message is model.ServerMessage.Finish) {
                 break
             } else if (message is model.ServerMessage.DebugUpdate) {
-                myStrategy.debugUpdate(debug)
+                myStrategy.debugUpdate(message.playerView, debug)
             }
         }
     }

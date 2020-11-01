@@ -104,7 +104,10 @@ impl<G: Game + 'static> GameProcessor<G> {
     pub(crate) fn debug_update(&mut self, debug_interface: &DebugInterface<G>) {
         for (index, player) in self.players.iter_mut().enumerate() {
             if let Some(player) = player {
-                player.debug_update(&debug_interface.for_player(index));
+                player.debug_update(
+                    &self.strategy.game().player_view(index),
+                    &debug_interface.for_player(index),
+                );
             }
         }
     }

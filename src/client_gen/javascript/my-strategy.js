@@ -5,7 +5,7 @@ class MyStrategy {
     async getAction(playerView, debug) {
         throw "Write your strategy here";
     }
-    async debugUpdate(debug) { }
+    async debugUpdate(playerView, debug) { }
 }
 
 module.exports.MyStrategy = MyStrategy;

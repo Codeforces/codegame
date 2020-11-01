@@ -49,7 +49,7 @@ class Runner {
                 } else if (message instanceof model.ServerMessage.Finish) {
                     break;
                 } else if (message instanceof model.ServerMessage.DebugUpdate) {
-                    await strategy.debugUpdate(debug);
+                    await strategy.debugUpdate(message.playerView, debug);
                 } else {
                     throw new Error("Unexpected server message");
                 }

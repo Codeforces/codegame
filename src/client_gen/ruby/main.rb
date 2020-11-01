@@ -51,7 +51,7 @@ class Runner
             elsif message.instance_of? ServerMessage::Finish
                 break
             elsif message.instance_of? ServerMessage::DebugUpdate
-                strategy.debug_update(debug)
+                strategy.debug_update(message.player_view, debug)
             else
                 raise "Unexpected server message"
             end

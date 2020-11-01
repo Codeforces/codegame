@@ -29,8 +29,8 @@ object Runner extends App {
           ActionMessage(myStrategy.getAction(playerView, debug)).writeTo(outputStream)
           outputStream.flush()
         case model.ServerMessage.Finish() => return
-        case model.ServerMessage.DebugUpdate() =>
-          myStrategy.debugUpdate(debug)
+        case model.ServerMessage.DebugUpdate(playerView) =>
+          myStrategy.debugUpdate(playerView, debug)
       }
     }
   }
