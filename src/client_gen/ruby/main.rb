@@ -45,12 +45,16 @@ class Runner
 
         while true
             message = ServerMessage.read_from(@reader)
-            player_view = message.player_view
-            if player_view == nil
+            if message.instance_of? ServerMessage::GetAction
+                ClientMessage::ActionMessage.new(strategy.get_action(message.player_view, debug)).write_to(@writer)
+                @writer.flush()
+            elsif message.instance_of? ServerMessage::Finish
                 break
+            elsif message.instance_of? ServerMessage::DebugUpdate
+                strategy.debug_update(debug)
+            else
+                raise "Unexpected server message"
             end
-            ClientMessage::ActionMessage.new(strategy.get_action(player_view, debug)).write_to(@writer)
-            @writer.flush()
         end
     end
 end

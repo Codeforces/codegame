@@ -21,12 +21,14 @@ public:
         MyStrategy myStrategy;
         while (true) {
             auto message = ServerMessage::readFrom(*inputStream);
-            const auto& playerView = message.playerView;
-            if (!playerView) {
+            if (auto getActionMessage = std::dynamic_pointer_cast<ServerMessage::GetAction>(message)) {
+                ClientMessage::ActionMessage(myStrategy.getAction(getActionMessage->playerView, debug)).writeTo(*outputStream);
+                outputStream->flush();
+            } else if (auto finishMessage = std::dynamic_pointer_cast<ServerMessage::Finish>(message)) {
                 break;
+            } else if (auto debugUpdateMessage = std::dynamic_pointer_cast<ServerMessage::DebugUpdate>(message)) {
+                myStrategy.debugUpdate(debug);
             }
-            ClientMessage::ActionMessage(myStrategy.getAction(*playerView, debug)).writeTo(*outputStream);
-            outputStream->flush();
         }
     }
 

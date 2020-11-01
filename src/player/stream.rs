@@ -23,7 +23,7 @@ impl<G: Game> Drop for StreamPlayer<G> {
     fn drop(&mut self) {
         if let Some(stream) = &mut self.stream {
             let mut try_write_finish = || {
-                ServerMessage::<G> { player_view: None }.write_to(&mut stream.writer)?;
+                ServerMessage::<G>::Finish {}.write_to(&mut stream.writer)?;
                 stream.writer.flush()
             };
             if let Err(e) = try_write_finish() {
@@ -41,23 +41,51 @@ impl<G: Game> Player<G> for StreamPlayer<G> {
     ) -> Result<G::Action, PlayerError> {
         let stream = self.stream.as_mut().expect("Called get_action after error");
         let mut get_action = move || {
-            ServerMessage::<G> {
-                player_view: Some(player_view.clone()), // TODO: dont clone
+            ServerMessage::<G>::GetAction {
+                player_view: player_view.clone(), // TODO: dont clone
             }
             .write_to(&mut stream.writer)?;
             stream.writer.flush()?;
             loop {
                 match ClientMessage::<G>::read_from(&mut stream.reader)? {
                     ClientMessage::ActionMessage { action } => return Ok(action),
-                    ClientMessage::DebugDataMessage { data } => {
+                    ClientMessage::DebugMessage { command } => {
                         if let Some(debug_interface) = debug_interface {
-                            debug_interface.send(data);
+                            debug_interface.send(command);
                         }
                     }
                 }
             }
         };
         let result = get_action();
+        if result.is_err() {
+            self.stream = None;
+        }
+        result
+    }
+    fn debug_update(
+        &mut self,
+        debug_interface: &PlayerDebugInterface<G>,
+    ) -> Result<(), PlayerError> {
+        let stream = self.stream.as_mut().expect("Called get_action after error");
+        let mut debug_update = move || {
+            ServerMessage::<G>::DebugUpdate {}.write_to(&mut stream.writer)?;
+            stream.writer.flush()?;
+            loop {
+                match ClientMessage::<G>::read_from(&mut stream.reader)? {
+                    ClientMessage::ActionMessage { .. } => {
+                        return Err(PlayerError::IOError(std::io::Error::new(
+                            std::io::ErrorKind::Other,
+                            "Unexpected action message in debug update",
+                        )));
+                    }
+                    ClientMessage::DebugMessage { command } => {
+                        debug_interface.send(command);
+                    }
+                }
+            }
+        };
+        let result = debug_update();
         if result.is_err() {
             self.stream = None;
         }

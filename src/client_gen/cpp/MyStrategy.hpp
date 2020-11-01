@@ -8,6 +8,7 @@ class MyStrategy {
 public:
     MyStrategy();
     Action getAction(const PlayerView& playerView, Debug& debug);
+    void debugUpdate(Debug& debug);
 };
 
 #endif

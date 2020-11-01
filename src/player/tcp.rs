@@ -102,4 +102,10 @@ impl<G: Game> Player<G> for TcpPlayer<G> {
     ) -> Result<G::Action, PlayerError> {
         Player::<G>::get_action(&mut self.inner, player_view, debug_interface)
     }
+    fn debug_update(
+        &mut self,
+        debug_interface: &PlayerDebugInterface<G>,
+    ) -> Result<(), PlayerError> {
+        Player::<G>::debug_update(&mut self.inner, debug_interface)
+    }
 }

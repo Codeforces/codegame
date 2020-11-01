@@ -5,8 +5,8 @@ class Debug
         @writer = writer
     end
 
-    def send(debugData)
-        ClientMessage::DebugDataMessage.new(debugData).write_to(@writer)
+    def send(command)
+        ClientMessage::DebugMessage.new(command).write_to(@writer)
         @writer.flush()
     end
 end

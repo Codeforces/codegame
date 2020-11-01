@@ -26,15 +26,24 @@ namespace ProjectName
         {
             var myStrategy = new MyStrategy();
             var debug = new Debug(writer);
-            while (true)
+            var running = true;
+            while (running)
             {
-                Model.ServerMessage message = Model.ServerMessage.ReadFrom(reader);
-                if (!message.PlayerView.HasValue)
+                switch (Model.ServerMessage.ReadFrom(reader))
                 {
-                    break;
+                    case Model.ServerMessage.GetAction message:
+                        new Model.ClientMessage.ActionMessage(myStrategy.GetAction(message.PlayerView, debug)).WriteTo(writer);
+                        writer.Flush();
+                        break;
+                    case Model.ServerMessage.Finish message:
+                        running = false;
+                        break;
+                    case Model.ServerMessage.DebugUpdate message:
+                        myStrategy.DebugUpdate(debug);
+                        break;
+                    default:
+                        throw new Exception("Unexpected server message");
                 }
-                new Model.ClientMessage.ActionMessage(myStrategy.GetAction(message.PlayerView.Value, debug)).WriteTo(writer);
-                writer.Flush();
             }
         }
         public static void Main(string[] args)

@@ -6,9 +6,10 @@ Debug::Debug(const std::shared_ptr<OutputStream>& outputStream)
 {
 }
 
-void Debug::send(const DebugData& debugData)
+void Debug::send(const DebugCommand& command)
 {
-    outputStream->write(ClientMessage::DebugDataMessage::TAG);
-    debugData.writeTo(*outputStream);
+    // TODO: Construct actual message, this is a hack :)
+    outputStream->write(ClientMessage::DebugMessage::TAG);
+    command.writeTo(*outputStream);
     outputStream->flush();
 }

@@ -1,14 +1,20 @@
 import model;
 import stream;
 
-class Debugger {
-    this(Stream stream) {
+class Debugger
+{
+    this(Stream stream)
+    {
         this.stream = stream;
     }
-    void send(const DebugData debugData) {
-        stream.write(ClientMessage.DebugDataMessage.TAG);
-        debugData.writeTo(stream);
+
+    void send(const DebugCommand command)
+    {
+        // TODO: Construct actual message, this is a hack :)
+        stream.write(ClientMessage.DebugMessage.TAG);
+        command.writeTo(stream);
     }
+
 private:
     Stream stream;
 }

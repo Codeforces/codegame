@@ -8,5 +8,7 @@ namespace ProjectName
         {
             throw new System.NotImplementedException();
         }
+
+        public void DebugUpdate(Debug debug) { }
     }
 }

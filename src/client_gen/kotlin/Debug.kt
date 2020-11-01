@@ -3,9 +3,9 @@ import java.io.OutputStream
 
 class Debug(private val stream: OutputStream) {
 
-    fun send(debugData: model.DebugData) {
+    fun send(command: model.DebugCommand) {
         try {
-            model.ClientMessage.DebugDataMessage(debugData).writeTo(stream)
+            model.ClientMessage.DebugMessage(command).writeTo(stream)
             stream.flush()
         } catch (e: IOException) {
             throw RuntimeException(e)

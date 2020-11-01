@@ -8,7 +8,6 @@ impl<G: Game> ClientGen<G> for Generator {
         let mut gen = Self::new(options.name, options.version);
         gen.add(&trans::Schema::of::<ClientMessage<G>>());
         gen.add(&trans::Schema::of::<ServerMessage<G>>());
-        gen.add(&trans::Schema::of::<G::DebugData>());
         let result = gen.result();
         result.write_to(options.target_dir)?;
         write_file(

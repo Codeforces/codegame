@@ -29,9 +29,9 @@ struct Runner {
 struct Debug<'a>(&'a mut dyn std::io::Write);
 
 impl Debug<'_> {
-    fn send(&mut self, debug_data: model::DebugData) {
+    fn send(&mut self, command: model::DebugCommand) {
         use trans::Trans;
-        model::ClientMessage::DebugDataMessage { data: debug_data }
+        model::ClientMessage::DebugMessage { command }
             .write_to(&mut self.0)
             .expect("Failed to write custom debug data");
     }
@@ -57,16 +57,19 @@ impl Runner {
         use trans::Trans;
         let mut strategy = MyStrategy::new();
         loop {
-            let message = model::ServerMessage::read_from(&mut self.reader)?;
-            let player_view = match message.player_view {
-                Some(view) => view,
-                None => break,
-            };
-            let message = model::ClientMessage::ActionMessage {
-                action: strategy.get_action(&player_view, &mut Debug(&mut self.writer)),
-            };
-            message.write_to(&mut self.writer)?;
-            self.writer.flush()?;
+            match model::ServerMessage::read_from(&mut self.reader)? {
+                model::ServerMessage::GetAction { player_view } => {
+                    let message = model::ClientMessage::ActionMessage {
+                        action: strategy.get_action(&player_view, &mut Debug(&mut self.writer)),
+                    };
+                    message.write_to(&mut self.writer)?;
+                    self.writer.flush()?;
+                }
+                model::ServerMessage::Finish {} => break,
+                model::ServerMessage::DebugUpdate {} => {
+                    strategy.debug_update(&mut Debug(&mut self.writer));
+                }
+            }
         }
         Ok(())
     }

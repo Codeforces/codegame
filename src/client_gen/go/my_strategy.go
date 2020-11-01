@@ -13,3 +13,5 @@ func NewMyStrategy() MyStrategy {
 func (strategy MyStrategy) getAction(playerView PlayerView, debug Debug) Action {
 	panic("Write your strategy here")
 }
+
+func (strategy MyStrategy) debugUpdate(debug Debug) {}

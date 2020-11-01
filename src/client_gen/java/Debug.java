@@ -8,9 +8,9 @@ public class Debug {
         this.stream = stream;
     }
 
-    public void send(model.DebugData debugData) {
+    public void send(model.DebugCommand command) {
         try {
-            new model.ClientMessage.DebugDataMessage(debugData).writeTo(stream);
+            new model.ClientMessage.DebugMessage(command).writeTo(stream);
             stream.flush();
         } catch (IOException e) {
             throw new RuntimeException(e);

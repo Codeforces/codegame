@@ -9,7 +9,6 @@ impl<G: Game> ClientGen<G> for Generator {
         let src_path = options.target_dir.join("src").join("main").join("java");
         gen.add(&trans::Schema::of::<ClientMessage<G>>());
         gen.add(&trans::Schema::of::<ServerMessage<G>>());
-        gen.add(&trans::Schema::of::<G::DebugData>());
         gen.result().write_to(&src_path)?;
         write_file(
             options.target_dir.join("Dockerfile"),

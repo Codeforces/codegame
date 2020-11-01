@@ -27,12 +27,17 @@ public class Runner {
         Debug debug = new Debug(outputStream);
         while (true) {
             model.ServerMessage message = model.ServerMessage.readFrom(inputStream);
-            model.PlayerView playerView = message.getPlayerView();
-            if (playerView == null) {
+            if (message instanceof model.ServerMessage.GetAction) {
+                model.ServerMessage.GetAction getActionMessage = (model.ServerMessage.GetAction) message;
+                new model.ClientMessage.ActionMessage(myStrategy.getAction(getActionMessage.getPlayerView(), debug)).writeTo(outputStream);
+                outputStream.flush();
+            } else if (message instanceof model.ServerMessage.Finish) {
                 break;
+            } else if (message instanceof model.ServerMessage.DebugUpdate) {
+                myStrategy.debugUpdate(debug);
+            } else {
+                throw new IOException("Unexpected server message");
             }
-            new model.ClientMessage.ActionMessage(myStrategy.getAction(playerView, debug)).writeTo(outputStream);
-            outputStream.flush();
         }
     }
 

@@ -24,13 +24,13 @@ object Runner extends App {
     val myStrategy = new MyStrategy()
     val debug = new Debug(outputStream)
     while (true) {
-      val message = model.ServerMessage.readFrom(inputStream)
-
-      message.playerView match {
-        case None => return
-        case Some(playerView) =>
+      model.ServerMessage.readFrom(inputStream) match {
+        case model.ServerMessage.GetAction(playerView) =>
           ActionMessage(myStrategy.getAction(playerView, debug)).writeTo(outputStream)
           outputStream.flush()
+        case model.ServerMessage.Finish() => return
+        case model.ServerMessage.DebugUpdate() =>
+          myStrategy.debugUpdate(debug)
       }
     }
   }

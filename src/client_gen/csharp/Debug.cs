@@ -9,9 +9,9 @@ namespace ProjectName
         {
             this.writer = writer;
         }
-        public void Send(Model.DebugData debugData)
+        public void Send(Model.DebugCommand command)
         {
-            new Model.ClientMessage.DebugDataMessage(debugData).WriteTo(writer);
+            new Model.ClientMessage.DebugMessage(command).WriteTo(writer);
             writer.Flush();
         }
     }

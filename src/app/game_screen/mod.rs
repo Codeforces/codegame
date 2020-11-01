@@ -5,6 +5,7 @@ mod ui;
 pub struct GameScreen<G: Game, R: Renderer<G>> {
     geng: Rc<Geng>,
     processor: Option<BackgroundGameProcessor<G>>,
+    debug_state: Arc<Mutex<Vec<G::DebugState>>>,
     renderer: R,
     history: History<G, R::ExtraData>,
     current_tick: f64,
@@ -46,17 +47,30 @@ impl<G: Game, R: Renderer<G>> GameScreen<G, R> {
         let paused = Rc::new(Cell::new(false));
         let view_speed_modifier = Rc::new(Cell::new(preferences.borrow().view_speed_modifier));
         let volume = Rc::new(Cell::new(preferences.borrow().volume));
+        let debug_state: Arc<Mutex<Vec<G::DebugState>>> = Arc::new(Mutex::new(
+            (0..processor
+                .as_ref()
+                .map_or(0, |processor| processor.player_count()))
+                .map(|index| renderer.debug_state(index))
+                .collect(),
+        ));
+
         let processor = processor.map(|processor| {
             BackgroundGameProcessor::new(
                 processor,
                 history.tick_handler(),
                 Some(DebugInterface {
-                    debug_data_handler: Box::new(history.debug_data_handler()),
+                    debug_command_handler: Box::new(history.debug_command_handler()),
+                    debug_state: Box::new({
+                        let debug_state = debug_state.clone();
+                        move |player_index| debug_state.lock().unwrap()[player_index].clone()
+                    }),
                 }),
             )
         });
         Self {
             geng: geng.clone(),
+            debug_state,
             processor,
             renderer,
             history,
@@ -135,6 +149,12 @@ where
 
         for event in self.history.go_to(self.current_tick, process_events) {
             self.renderer.process_event(&event);
+        }
+
+        if let Some(processor) = &self.processor {
+            *self.debug_state.lock().unwrap() = (0..processor.player_count())
+                .map(|index| self.renderer.debug_state(index))
+                .collect();
         }
 
         self.renderer.update(delta_time);

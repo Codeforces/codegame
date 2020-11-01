@@ -1,7 +1,15 @@
 use super::*;
 
+#[derive(Serialize, Deserialize, Trans)]
+#[trans(no_generics_in_name)]
+pub enum DebugCommand<G: Game> {
+    Add { data: G::DebugData },
+    Clear,
+}
+
 pub struct DebugInterface<G: Game> {
-    pub(crate) debug_data_handler: Box<dyn Fn(usize, G::DebugData) + Send>,
+    pub(crate) debug_command_handler: Box<dyn Fn(usize, DebugCommand<G>) + Send>,
+    pub(crate) debug_state: Box<dyn Fn(usize) -> G::DebugState + Send>,
 }
 
 impl<G: Game> DebugInterface<G> {
@@ -19,7 +27,10 @@ pub struct PlayerDebugInterface<'a, G: Game> {
 }
 
 impl<G: Game> PlayerDebugInterface<'_, G> {
-    pub fn send(&self, debug_data: G::DebugData) {
-        (self.debug_interface.debug_data_handler)(self.player_index, debug_data);
+    pub fn send(&self, command: DebugCommand<G>) {
+        (self.debug_interface.debug_command_handler)(self.player_index, command);
+    }
+    pub fn state(&self) -> G::DebugState {
+        (self.debug_interface.debug_state)(self.player_index)
     }
 }

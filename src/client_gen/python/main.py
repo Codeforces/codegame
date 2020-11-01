@@ -24,11 +24,16 @@ class Runner:
 
         while True:
             message = model.ServerMessage.read_from(self.reader)
-            if message.player_view is None:
+            if isinstance(message, model.ServerMessage.GetAction):
+                model.ClientMessage.ActionMessage(strategy.get_action(
+                    message.player_view, debug)).write_to(self.writer)
+                self.writer.flush()
+            elif isinstance(message, model.ServerMessage.Finish):
                 break
-            model.ClientMessage.ActionMessage(strategy.get_action(
-                message.player_view, debug)).write_to(self.writer)
-            self.writer.flush()
+            elif isinstance(message, model.ServerMessage.DebugUpdate):
+                strategy.debug_update(debug)
+            else:
+                raise Exception("Unexpected server message")
 
 
 if __name__ == "__main__":

@@ -18,6 +18,10 @@ pub trait Player<G: Game>: Send {
         view: &G::PlayerView,
         debug_interface: Option<&PlayerDebugInterface<G>>,
     ) -> Result<G::Action, PlayerError>;
+    fn debug_update(
+        &mut self,
+        debug_interface: &PlayerDebugInterface<G>,
+    ) -> Result<(), PlayerError>;
 }
 
 pub struct EmptyPlayer;
@@ -36,6 +40,9 @@ where
     ) -> Result<G::Action, PlayerError> {
         Ok(default())
     }
+    fn debug_update(&mut self, _: &PlayerDebugInterface<G>) -> Result<(), PlayerError> {
+        Ok(())
+    }
 }
 
 impl<G: Game, T: Player<G> + ?Sized> Player<G> for Box<T> {
@@ -45,6 +52,12 @@ impl<G: Game, T: Player<G> + ?Sized> Player<G> for Box<T> {
         debug_interface: Option<&PlayerDebugInterface<G>>,
     ) -> Result<G::Action, PlayerError> {
         (**self).get_action(view, debug_interface)
+    }
+    fn debug_update(
+        &mut self,
+        debug_interface: &PlayerDebugInterface<G>,
+    ) -> Result<(), PlayerError> {
+        (**self).debug_update(debug_interface)
     }
 }
 
@@ -56,6 +69,15 @@ impl<G: Game> Player<G> for ErroredPlayer {
         _: &G::PlayerView,
         _: Option<&PlayerDebugInterface<G>>,
     ) -> Result<G::Action, PlayerError> {
+        Err(PlayerError::IOError(std::io::Error::new(
+            std::io::ErrorKind::Other,
+            self.0.as_str(),
+        )))
+    }
+    fn debug_update(
+        &mut self,
+        debug_interface: &PlayerDebugInterface<G>,
+    ) -> Result<(), PlayerError> {
         Err(PlayerError::IOError(std::io::Error::new(
             std::io::ErrorKind::Other,
             self.0.as_str(),

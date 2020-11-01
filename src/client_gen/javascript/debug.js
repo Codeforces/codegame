@@ -5,8 +5,9 @@ class Debug {
         this.streamWrapper = streamWrapper;
     }
 
-    async send(debugData) {
-        await (new model.ClientMessage.DebugDataMessage(debugData)).writeTo(this.streamWrapper);
+    async send(command) {
+        await (new model.ClientMessage.DebugMessage(command)).writeTo(this.streamWrapper);
+        // TODO: only flush stream once here?
     }
 }
 

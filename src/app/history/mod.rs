@@ -153,14 +153,15 @@ impl<G: Game, T: RendererData<G>> HistorySharedState<G, T> {
             HashMap::new(),
         )));
     }
-    fn push_debug_data(&mut self, player_index: usize, debug_data: G::DebugData) {
+    fn handle_debug_command(&mut self, player_index: usize, command: DebugCommand<G>) {
         if !self.last_debug_data.contains_key(&player_index) {
             self.last_debug_data.insert(player_index, Vec::new());
         }
-        self.last_debug_data
-            .get_mut(&player_index)
-            .unwrap()
-            .push(debug_data);
+        let player_data = self.last_debug_data.get_mut(&player_index).unwrap();
+        match command {
+            DebugCommand::Add { data } => player_data.push(data),
+            DebugCommand::Clear {} => player_data.clear(),
+        }
     }
     fn len(&self) -> usize {
         self.game.len()
@@ -257,7 +258,10 @@ impl<G: Game, T: RendererData<G>> History<G, T> {
                 },
             };
         } else {
-            if tick > 0 && self.debug_data_timer.elapsed() < 0.5 {
+            if tick > 0
+                && self.debug_data_timer.elapsed() < 0.5
+                && shared_state.last_debug_data.is_empty()
+            {
                 self.debug_data = Window {
                     current: shared_state.debug_data[tick - 1].clone(),
                     prev: if tick > 1 {
@@ -298,13 +302,13 @@ impl<G: Game, T: RendererData<G>> History<G, T> {
             shared_state.lock().unwrap().push(game.clone(), events);
         }
     }
-    pub fn debug_data_handler(&self) -> impl Fn(usize, G::DebugData) + Send + 'static {
+    pub fn debug_command_handler(&self) -> impl Fn(usize, DebugCommand<G>) + Send + 'static {
         let shared_state = self.shared_state.clone();
-        move |player_index, debug_data| {
+        move |player_index, command| {
             shared_state
                 .lock()
                 .unwrap()
-                .push_debug_data(player_index, debug_data);
+                .handle_debug_command(player_index, command);
         }
     }
 }

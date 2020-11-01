@@ -43,10 +43,16 @@ class Runner {
             const debug = new Debug(this.streamWrapper);
             while (true) {
                 message = await model.ServerMessage.readFrom(this.streamWrapper);
-                if (message.playerView === null) {
+                if (message instanceof model.ServerMessage.GetAction) {
+                    await (new model.ClientMessage.ActionMessage(await strategy.getAction(message.playerView, debug)).writeTo(this.streamWrapper));
+                    // TODO: only flush stream once here?
+                } else if (message instanceof model.ServerMessage.Finish) {
                     break;
+                } else if (message instanceof model.ServerMessage.DebugUpdate) {
+                    await strategy.debugUpdate(debug);
+                } else {
+                    throw new Error("Unexpected server message");
                 }
-                await (new model.ClientMessage.ActionMessage(await strategy.getAction(message.playerView, debug)).writeTo(this.streamWrapper));
             }
         } catch (e) {
             console.error(e);

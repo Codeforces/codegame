@@ -13,4 +13,5 @@ impl MyStrategy {
     ) -> model::Action {
         todo!()
     }
+    pub fn debug_update(&mut self, debug: &mut Debug) {}
 }

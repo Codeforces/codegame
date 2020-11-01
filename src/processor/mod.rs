@@ -101,6 +101,14 @@ impl<G: Game + 'static> GameProcessor<G> {
         self.results_handler = Some(handler);
     }
 
+    pub(crate) fn debug_update(&mut self, debug_interface: &DebugInterface<G>) {
+        for (index, player) in self.players.iter_mut().enumerate() {
+            if let Some(player) = player {
+                player.debug_update(&debug_interface.for_player(index));
+            }
+        }
+    }
+
     pub(crate) fn process_tick(
         &mut self,
         debug_interface: Option<&DebugInterface<G>>,
@@ -181,5 +189,9 @@ impl<G: Game + 'static> GameProcessor<G> {
 
     pub fn finished(&self) -> bool {
         self.strategy.finished()
+    }
+
+    pub fn player_count(&self) -> usize {
+        self.players.len()
     }
 }
