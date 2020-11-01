@@ -78,6 +78,8 @@ class Runner
             else if (auto debugUpdateMessage = cast(ServerMessage.DebugUpdate)(message))
             {
                 myStrategy.debugUpdate(debugUpdateMessage.playerView, debugger);
+                new ClientMessage.DebugUpdateDone().writeTo(stream);
+                stream.flush();
             }
             else
             {

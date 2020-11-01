@@ -28,6 +28,8 @@ public:
                 break;
             } else if (auto debugUpdateMessage = std::dynamic_pointer_cast<ServerMessage::DebugUpdate>(message)) {
                 myStrategy.debugUpdate(debugUpdateMessage->playerView, debug);
+                ClientMessage::DebugUpdateDone().writeTo(*outputStream);
+                outputStream->flush();
             }
         }
     }

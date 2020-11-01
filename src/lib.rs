@@ -131,6 +131,7 @@ pub enum ClientMessage<G: Game> {
     ActionMessage {
         action: G::Action,
     },
+    DebugUpdateDone {},
 }
 
 #[derive(Serialize, Deserialize, Trans)]

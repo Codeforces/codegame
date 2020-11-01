@@ -32,6 +32,8 @@ module Runner =
                 | Model.ServerMessage.Finish message -> ()
                 | Model.ServerMessage.DebugUpdate message ->
                     myStrategy.debugUpdate (message.PlayerView, debug)
+                    (new Model.ClientMessageDebugUpdateDone()).writeTo writer
+                    writer.Flush()
                     loop ()
 
             loop ()

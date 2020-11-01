@@ -32,6 +32,8 @@ class Runner:
                 break
             elif isinstance(message, model.ServerMessage.DebugUpdate):
                 strategy.debug_update(message.player_view, debug)
+                model.ClientMessage.DebugUpdateDone().write_to(self.writer)
+                self.writer.flush()
             else:
                 raise Exception("Unexpected server message")
 

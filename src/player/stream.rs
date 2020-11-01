@@ -54,6 +54,12 @@ impl<G: Game> Player<G> for StreamPlayer<G> {
                             debug_interface.send(command);
                         }
                     }
+                    ClientMessage::DebugUpdateDone {} => {
+                        return Err(PlayerError::IOError(std::io::Error::new(
+                            std::io::ErrorKind::Other,
+                            "Unexpected debug update done message in get_action",
+                        )));
+                    }
                 }
             }
         };
@@ -86,6 +92,7 @@ impl<G: Game> Player<G> for StreamPlayer<G> {
                     ClientMessage::DebugMessage { command } => {
                         debug_interface.send(command);
                     }
+                    ClientMessage::DebugUpdateDone {} => return Ok(()),
                 }
             }
         };

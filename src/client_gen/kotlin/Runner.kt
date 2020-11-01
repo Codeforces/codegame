@@ -33,6 +33,8 @@ internal constructor(host: String, port: Int, token: String) {
                 break
             } else if (message is model.ServerMessage.DebugUpdate) {
                 myStrategy.debugUpdate(message.playerView, debug)
+                model.ClientMessage.DebugUpdateDone().writeTo(outputStream)
+                outputStream.flush()
             }
         }
     }

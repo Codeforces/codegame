@@ -53,6 +53,11 @@ loop:
 			break loop
 		case ServerMessageDebugUpdate:
 			myStrategy.debugUpdate(message.PlayerView, debug)
+			ClientMessageDebugUpdateDone{}.Write(runner.writer)
+			err := runner.writer.Flush()
+			if err != nil {
+				panic(err)
+			}
 		default:
 			panic("Unexpected server message")
 		}

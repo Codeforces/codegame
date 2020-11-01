@@ -1,7 +1,6 @@
 import java.io.{BufferedInputStream, BufferedOutputStream}
 import java.net.Socket
 
-import model.ClientMessage.ActionMessage
 import util.StreamUtil
 
 object Runner extends App {
@@ -26,11 +25,13 @@ object Runner extends App {
     while (true) {
       model.ServerMessage.readFrom(inputStream) match {
         case model.ServerMessage.GetAction(playerView) =>
-          ActionMessage(myStrategy.getAction(playerView, debug)).writeTo(outputStream)
+          model.ClientMessage.ActionMessage(myStrategy.getAction(playerView, debug)).writeTo(outputStream)
           outputStream.flush()
         case model.ServerMessage.Finish() => return
         case model.ServerMessage.DebugUpdate(playerView) =>
           myStrategy.debugUpdate(playerView, debug)
+          model.ClientMessage.DebugUpdateDone().writeTo(outputStream)
+          outputStream.flush()
       }
     }
   }

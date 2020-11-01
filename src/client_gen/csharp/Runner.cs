@@ -40,6 +40,8 @@ namespace ProjectName
                         break;
                     case Model.ServerMessage.DebugUpdate message:
                         myStrategy.DebugUpdate(message.PlayerView, debug);
+                        new Model.ClientMessage.DebugUpdateDone().WriteTo(writer);
+                        writer.Flush();
                         break;
                     default:
                         throw new Exception("Unexpected server message");

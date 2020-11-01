@@ -68,6 +68,8 @@ impl Runner {
                 model::ServerMessage::Finish {} => break,
                 model::ServerMessage::DebugUpdate { player_view } => {
                     strategy.debug_update(&player_view, &mut Debug(&mut self.writer));
+                    model::ClientMessage::DebugUpdateDone {}.write_to(&mut self.writer)?;
+                    self.writer.flush()?;
                 }
             }
         }

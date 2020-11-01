@@ -50,6 +50,8 @@ class Runner {
                     break;
                 } else if (message instanceof model.ServerMessage.DebugUpdate) {
                     await strategy.debugUpdate(message.playerView, debug);
+                    await (new model.ClientMessage.DebugUpdateDone().writeTo(this.streamWrapper));
+                    // TODO: only flush stream once here?
                 } else {
                     throw new Error("Unexpected server message");
                 }
