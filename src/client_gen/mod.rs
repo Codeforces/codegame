@@ -94,6 +94,7 @@ where
     G: Game,
     CG: ClientGen<G>,
     G::Options: Default,
+    G::DebugState: Default,
 {
     info!("Generating {}", CG::NAME);
     CG::gen(options)?;
@@ -125,7 +126,10 @@ where
             },
         ))?) as Box<_>];
         let processor = GameProcessor::new(None, default(), players);
-        processor.run();
+        processor.run(Some(&DebugInterface {
+            debug_command_handler: Box::new(|player_index, command| {}),
+            debug_state: Box::new(|player_index| default()),
+        }));
         if let Err(e) = client_thread.join() {
             anyhow::bail!("Running client failed");
         }
@@ -143,6 +147,7 @@ pub fn test_all<G>(
 where
     G: Game,
     G::Options: Default,
+    G::DebugState: Default,
 {
     macro_rules! test {
         ($lang:ident) => {{

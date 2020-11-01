@@ -180,9 +180,12 @@ impl<G: Game + 'static> GameProcessor<G> {
         events
     }
 
-    pub fn run(mut self) {
+    pub fn run(mut self, debug_interface: Option<&DebugInterface<G>>) {
         while !self.finished() {
-            self.process_tick(None);
+            self.process_tick(debug_interface);
+            if let Some(debug_interface) = debug_interface {
+                self.debug_update(debug_interface);
+            }
         }
     }
 
