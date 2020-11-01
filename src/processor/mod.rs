@@ -18,15 +18,12 @@ pub struct GameProcessor<G: Game> {
 }
 
 impl<G: Game + 'static> GameProcessor<G> {
-    pub fn new_full(full_options: FullOptions<G>, player_extra_data: &G::PlayerExtraData) -> Self {
+    pub fn new_full(full_options: FullOptions<G>) -> Self {
         Self::new(
             full_options.seed,
             full_options.game.into(),
             futures::executor::block_on(futures::future::join_all(
-                full_options
-                    .players
-                    .iter()
-                    .map(|options| options.get(player_extra_data)),
+                full_options.players.iter().map(|options| options.get()),
             ))
             .into_iter()
             .map(|result| match result {
@@ -60,16 +57,12 @@ impl<G: Game + 'static> GameProcessor<G> {
     }
     pub fn repeat_full(
         full_options: FullOptions<G>,
-        player_extra_data: &G::PlayerExtraData,
         reader: impl std::io::Read + Send + 'static,
     ) -> Self {
         Self::repeat(
             reader,
             futures::executor::block_on(futures::future::join_all(
-                full_options
-                    .players
-                    .iter()
-                    .map(|options| options.get(player_extra_data)),
+                full_options.players.iter().map(|options| options.get()),
             ))
             .into_iter()
             .map(|result| match result {

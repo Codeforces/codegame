@@ -21,10 +21,7 @@ pub use player::*;
 pub use processor::*;
 
 pub trait PlayerOptions<G: Game>: From<TcpPlayerOptions> + From<EmptyPlayerOptions> {
-    fn get(
-        &self,
-        extra_data: &G::PlayerExtraData,
-    ) -> Pin<Box<dyn Future<Output = Result<Box<dyn Player<G>>, PlayerError>>>>;
+    fn get(&self) -> Pin<Box<dyn Future<Output = Result<Box<dyn Player<G>>, PlayerError>>>>;
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -111,7 +108,6 @@ pub trait Game: Diff {
     type Event: Serialize + for<'de> Deserialize<'de> + Trans + Sync + Send + Clone + 'static;
     type PlayerView: Serialize + for<'de> Deserialize<'de> + Trans + Sync + Send + Clone + 'static;
     type Results: Serialize + for<'de> Deserialize<'de> + Sync + Send + Clone + 'static;
-    type PlayerExtraData;
     type DebugData: Serialize + for<'de> Deserialize<'de> + Trans + Sync + Send + Clone + 'static;
     fn init(rng: &mut dyn RngCore, player_count: usize, options: Self::Options) -> Self;
     fn player_view(&self, player_index: usize) -> Self::PlayerView;
