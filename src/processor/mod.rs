@@ -102,12 +102,16 @@ impl<G: Game + 'static> GameProcessor<G> {
     }
 
     pub(crate) fn debug_update(&mut self, debug_interface: &DebugInterface<G>) {
-        for (index, player) in self.players.iter_mut().enumerate() {
-            if let Some(player) = player {
-                player.debug_update(
+        for (index, player_cell) in self.players.iter_mut().enumerate() {
+            if let Some(player) = player_cell {
+                if let Err(e) = player.debug_update(
                     &self.strategy.game().player_view(index),
                     &debug_interface.for_player(index),
-                );
+                ) {
+                    *player_cell = None;
+                    warn!("Player error: {}", e);
+                    self.player_comments[index] = Some(format!("Player crashed: {}", e));
+                }
             }
         }
     }
