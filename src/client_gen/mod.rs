@@ -24,7 +24,8 @@ pub struct Options<'a> {
 pub trait ClientGen<G: Game> {
     const NAME: &'static str;
     const RUNNABLE: bool;
-    fn gen(options: &Options) -> anyhow::Result<()>;
+    type GenOptions;
+    fn gen(options: &Options, gen_options: Self::GenOptions) -> anyhow::Result<()>;
     fn build_local(options: &Options) -> anyhow::Result<()>;
     fn run_local(options: &Options) -> anyhow::Result<Command>;
 }
@@ -89,6 +90,7 @@ pub struct TestOptions {
 
 pub fn test<G, CG>(
     options: &Options,
+    gen_options: CG::GenOptions,
     extra_files: &HashMap<&str, &str>,
     test_options: &TestOptions,
 ) -> anyhow::Result<()>
@@ -99,7 +101,7 @@ where
     G::DebugState: Default,
 {
     info!("Generating {}", CG::NAME);
-    CG::gen(options)?;
+    CG::gen(options, gen_options)?;
     for (path, contents) in extra_files {
         std::fs::write(options.target_dir.join(path), contents)?;
     }
@@ -144,6 +146,7 @@ pub fn test_all<G>(
     options: &Options,
     extra_files: &HashMap<&str, HashMap<&str, &str>>,
     language_filter: Option<HashSet<&str>>,
+    gen_options: &HashMap<String, serde_json::Value>,
     test_options: &TestOptions,
 ) -> anyhow::Result<()>
 where
@@ -153,7 +156,7 @@ where
 {
     macro_rules! test {
         ($lang:ident) => {{
-            type CG = $lang::Generator;
+            type CG = trans_gen::GeneratorImpl<$lang::Generator>;
             if language_filter
                 .as_ref()
                 .map_or(true, |filter| filter.contains(<CG as ClientGen<G>>::NAME))
@@ -164,6 +167,13 @@ where
                         target_dir: options.target_dir.join(<CG as ClientGen<G>>::NAME).as_ref(),
                         ..*options
                     },
+                    gen_options
+                        .get(<CG as ClientGen<G>>::NAME)
+                        .map(|value| {
+                            serde_json::from_value(value.clone())
+                                .expect("Failed to parse gen options")
+                        })
+                        .unwrap_or_default(),
                     if let Some(extra_files) = extra_files.get(<CG as ClientGen<G>>::NAME) {
                         extra_files
                     } else {

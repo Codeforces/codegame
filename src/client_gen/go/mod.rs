@@ -1,12 +1,13 @@
 use super::*;
 
-pub type Generator = trans_gen::GeneratorImpl<trans_gen::gens::go::Generator>;
+pub type Generator = trans_gen::gens::go::Generator;
 
-impl<G: Game> ClientGen<G> for Generator {
+impl<G: Game> ClientGen<G> for trans_gen::GeneratorImpl<Generator> {
     const NAME: &'static str = "Go";
     const RUNNABLE: bool = true;
-    fn gen(options: &Options) -> anyhow::Result<()> {
-        let mut gen = Self::new(options.name, options.version);
+    type GenOptions = <Generator as trans_gen::Generator>::Options;
+    fn gen(options: &Options, gen_options: Self::GenOptions) -> anyhow::Result<()> {
+        let mut gen = Self::new(options.name, options.version, gen_options);
         gen.add(&trans::Schema::of::<ClientMessage<G>>());
         gen.add(&trans::Schema::of::<ServerMessage<G>>());
         gen.result().write_to(options.target_dir)?;

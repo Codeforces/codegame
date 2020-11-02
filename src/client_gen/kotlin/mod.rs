@@ -1,12 +1,13 @@
 use super::*;
 
-pub type Generator = trans_gen::GeneratorImpl<trans_gen::gens::kotlin::Generator>;
+pub type Generator = trans_gen::gens::kotlin::Generator;
 
-impl<G: Game> ClientGen<G> for Generator {
+impl<G: Game> ClientGen<G> for trans_gen::GeneratorImpl<Generator> {
     const NAME: &'static str = "Kotlin";
     const RUNNABLE: bool = true;
-    fn gen(options: &Options) -> anyhow::Result<()> {
-        let mut gen = Self::new(options.name, options.version);
+    type GenOptions = <Generator as trans_gen::Generator>::Options;
+    fn gen(options: &Options, gen_options: Self::GenOptions) -> anyhow::Result<()> {
+        let mut gen = Self::new(options.name, options.version, gen_options);
         let src_path = options.target_dir.join("src").join("main").join("kotlin");
         gen.add(&trans::Schema::of::<ClientMessage<G>>());
         gen.add(&trans::Schema::of::<ServerMessage<G>>());
