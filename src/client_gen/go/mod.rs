@@ -4,6 +4,7 @@ pub type Generator = trans_gen::GeneratorImpl<trans_gen::gens::go::Generator>;
 
 impl<G: Game> ClientGen<G> for Generator {
     const NAME: &'static str = "Go";
+    const RUNNABLE: bool = true;
     fn gen(options: &Options) -> anyhow::Result<()> {
         let mut gen = Self::new(options.name, options.version);
         gen.add(&trans::Schema::of::<ClientMessage<G>>());

@@ -23,6 +23,7 @@ pub struct Options<'a> {
 
 pub trait ClientGen<G: Game> {
     const NAME: &'static str;
+    const RUNNABLE: bool;
     fn gen(options: &Options) -> anyhow::Result<()>;
     fn build_local(options: &Options) -> anyhow::Result<()>;
     fn run_local(options: &Options) -> anyhow::Result<Command>;
@@ -50,6 +51,7 @@ macro_rules! all_langs {
         $invoke!(ruby);
         $invoke!(rust);
         $invoke!(scala);
+        $invoke!(markdown);
     };
 }
 
@@ -102,12 +104,12 @@ where
         std::fs::write(options.target_dir.join(path), contents)?;
     }
 
-    if matches!(test_options.mode, TestMode::Build | TestMode::Run) {
+    if CG::RUNNABLE && matches!(test_options.mode, TestMode::Build | TestMode::Run) {
         info!("Building...");
         CG::build_local(options)?;
     }
 
-    if matches!(test_options.mode, TestMode::Run) {
+    if CG::RUNNABLE && matches!(test_options.mode, TestMode::Run) {
         info!("Running...");
         const PORT: u16 = 31005;
         const TOKEN: &str = "CODEGAME_TOKEN";

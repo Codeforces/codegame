@@ -4,6 +4,7 @@ pub type Generator = trans_gen::GeneratorImpl<trans_gen::gens::scala::Generator>
 
 impl<G: Game> ClientGen<G> for Generator {
     const NAME: &'static str = "Scala";
+    const RUNNABLE: bool = true;
     fn gen(options: &Options) -> anyhow::Result<()> {
         let mut gen = Self::new(options.name, options.version);
         let src_path = options.target_dir.join("src").join("main").join("scala");
