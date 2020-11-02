@@ -121,25 +121,41 @@ pub trait Game: Diff {
     fn results(&self) -> Self::Results;
 }
 
+/// Message sent from client
 #[derive(Serialize, Deserialize, Trans)]
 #[trans(no_generics_in_name)]
 pub enum ClientMessage<G: Game> {
+    /// Ask app to perform new debug command
     DebugMessage {
+        /// Command to perform
         #[serde(bound = "")]
         command: DebugCommand<G>,
     },
+    /// Reply for ServerMessage::GetAction
     ActionMessage {
+        /// Player's action
         action: G::Action,
     },
+    /// Signifies finish of the debug update
     DebugUpdateDone {},
 }
 
+/// Message sent from server
 #[derive(Serialize, Deserialize, Trans)]
 #[trans(no_generics_in_name)]
 pub enum ServerMessage<G: Game> {
-    GetAction { player_view: G::PlayerView },
+    /// Get action for next tick
+    GetAction {
+        /// Player's view
+        player_view: G::PlayerView,
+    },
+    /// Signifies end of the game
     Finish {},
-    DebugUpdate { player_view: G::PlayerView },
+    /// Debug update
+    DebugUpdate {
+        /// Player's view
+        player_view: G::PlayerView,
+    },
 }
 
 #[cfg(feature = "rendering")]

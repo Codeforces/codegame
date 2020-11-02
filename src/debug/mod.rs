@@ -1,9 +1,15 @@
 use super::*;
 
+/// Debug commands that can be sent while debugging with the app
 #[derive(Serialize, Deserialize, Trans)]
 #[trans(no_generics_in_name)]
 pub enum DebugCommand<G: Game> {
-    Add { data: G::DebugData },
+    /// Add debug data to current tick
+    Add {
+        /// Data to add
+        data: G::DebugData,
+    },
+    /// Clear current tick's debug data
     Clear,
 }
 
