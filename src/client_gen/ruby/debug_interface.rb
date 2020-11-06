@@ -1,6 +1,6 @@
 require_relative 'model'
 
-class Debug
+class DebugInterface
     def initialize(writer)
         @writer = writer
     end

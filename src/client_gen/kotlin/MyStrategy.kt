@@ -1,8 +1,8 @@
 import model.*
 
 class MyStrategy {
-    fun getAction(playerView: PlayerView, debug: Debug): Action {
+    fun getAction(playerView: PlayerView, debugInterface: DebugInterface): Action {
         TODO("Write your strategy here")
     }
-    fun debugUpdate(playerView: PlayerView, debug: Debug) {}
+    fun debugUpdate(playerView: PlayerView, debugInterface: DebugInterface) {}
 }

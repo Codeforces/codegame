@@ -21,15 +21,15 @@ object Runner extends App {
     outputStream.flush()
 
     val myStrategy = new MyStrategy()
-    val debug = new Debug(outputStream)
+    val debugInterface = new DebugInterface(outputStream)
     while (true) {
       model.ServerMessage.readFrom(inputStream) match {
         case model.ServerMessage.GetAction(playerView) =>
-          model.ClientMessage.ActionMessage(myStrategy.getAction(playerView, debug)).writeTo(outputStream)
+          model.ClientMessage.ActionMessage(myStrategy.getAction(playerView, debugInterface)).writeTo(outputStream)
           outputStream.flush()
         case model.ServerMessage.Finish() => return
         case model.ServerMessage.DebugUpdate(playerView) =>
-          myStrategy.debugUpdate(playerView, debug)
+          myStrategy.debugUpdate(playerView, debugInterface)
           model.ClientMessage.DebugUpdateDone().writeTo(outputStream)
           outputStream.flush()
       }

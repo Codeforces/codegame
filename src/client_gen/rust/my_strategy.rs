@@ -9,9 +9,14 @@ impl MyStrategy {
     pub fn get_action(
         &mut self,
         player_view: &model::PlayerView,
-        debug: &mut Debug,
+        debug_interface: &mut DebugInterface,
     ) -> model::Action {
         todo!()
     }
-    pub fn debug_update(&mut self, player_view: &model::PlayerView, debug: &mut Debug) {}
+    pub fn debug_update(
+        &mut self,
+        player_view: &model::PlayerView,
+        debug_interface: &mut DebugInterface,
+    ) {
+    }
 }

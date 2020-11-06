@@ -28,8 +28,8 @@ impl<G: Game> ClientGen<G> for trans_gen::GeneratorImpl<Generator> {
             project_file!(options, "main.py"),
         )?;
         write_file(
-            options.target_dir.join("debug.py"),
-            project_file!(options, "debug.py"),
+            options.target_dir.join("debug_interface.py"),
+            project_file!(options, "debug_interface.py"),
         )?;
         write_file(
             options.target_dir.join("my_strategy.py"),

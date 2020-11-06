@@ -1,7 +1,7 @@
 import model
 from stream_wrapper import StreamWrapper
 from my_strategy import MyStrategy
-from debug import Debug
+from debug_interface import DebugInterface
 import socket
 import sys
 
@@ -20,18 +20,18 @@ class Runner:
 
     def run(self):
         strategy = MyStrategy()
-        debug = Debug(self.writer)
+        debug_interface = DebugInterface(self.writer)
 
         while True:
             message = model.ServerMessage.read_from(self.reader)
             if isinstance(message, model.ServerMessage.GetAction):
                 model.ClientMessage.ActionMessage(strategy.get_action(
-                    message.player_view, debug)).write_to(self.writer)
+                    message.player_view, debug_interface)).write_to(self.writer)
                 self.writer.flush()
             elif isinstance(message, model.ServerMessage.Finish):
                 break
             elif isinstance(message, model.ServerMessage.DebugUpdate):
-                strategy.debug_update(message.player_view, debug)
+                strategy.debug_update(message.player_view, debug_interface)
                 model.ClientMessage.DebugUpdateDone().write_to(self.writer)
                 self.writer.flush()
             else:

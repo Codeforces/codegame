@@ -25,8 +25,8 @@ impl<G: Game> ClientGen<G> for trans_gen::GeneratorImpl<Generator> {
             project_file!(options, "run.sh"),
         )?;
         write_file(
-            options.target_dir.join("Debug.fs"),
-            &project_file!(options, "Debug.fs"),
+            options.target_dir.join("DebugInterface.fs"),
+            &project_file!(options, "DebugInterface.fs"),
         )?;
         write_file(
             options.target_dir.join("Runner.fs"),
@@ -49,7 +49,7 @@ impl<G: Game> ClientGen<G> for trans_gen::GeneratorImpl<Generator> {
                             None
                         }
                     })
-                    .chain(std::iter::once("Debug.fs"))
+                    .chain(std::iter::once("DebugInterface.fs"))
                     .chain(std::iter::once("MyStrategy.fs"))
                     .chain(std::iter::once("Runner.fs"))
                     .map(|path| format!("<Compile Include=\"{}\" />", path))

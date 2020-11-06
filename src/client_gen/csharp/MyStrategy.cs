@@ -4,11 +4,11 @@ namespace ProjectName
 {
     public class MyStrategy
     {
-        public Action GetAction(PlayerView playerView, Debug debug)
+        public Action GetAction(PlayerView playerView, DebugInterface debugInterface)
         {
             throw new System.NotImplementedException();
         }
 
-        public void DebugUpdate(PlayerView playerView, Debug debug) { }
+        public void DebugUpdate(PlayerView playerView, DebugInterface debugInterface) { }
     }
 }

@@ -28,8 +28,8 @@ impl<G: Game> ClientGen<G> for trans_gen::GeneratorImpl<Generator> {
             &project_file!(options, "Runner.cs"),
         )?;
         write_file(
-            options.target_dir.join("Debug.cs"),
-            &project_file!(options, "Debug.cs"),
+            options.target_dir.join("DebugInterface.cs"),
+            &project_file!(options, "DebugInterface.cs"),
         )?;
         write_file(
             options.target_dir.join("MyStrategy.cs"),

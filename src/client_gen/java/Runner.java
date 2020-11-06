@@ -24,18 +24,18 @@ public class Runner {
 
     void run() throws IOException {
         MyStrategy myStrategy = new MyStrategy();
-        Debug debug = new Debug(outputStream);
+        DebugInterface debugInterface = new DebugInterface(outputStream);
         while (true) {
             model.ServerMessage message = model.ServerMessage.readFrom(inputStream);
             if (message instanceof model.ServerMessage.GetAction) {
                 model.ServerMessage.GetAction getActionMessage = (model.ServerMessage.GetAction) message;
-                new model.ClientMessage.ActionMessage(myStrategy.getAction(getActionMessage.getPlayerView(), debug)).writeTo(outputStream);
+                new model.ClientMessage.ActionMessage(myStrategy.getAction(getActionMessage.getPlayerView(), debugInterface)).writeTo(outputStream);
                 outputStream.flush();
             } else if (message instanceof model.ServerMessage.Finish) {
                 break;
             } else if (message instanceof model.ServerMessage.DebugUpdate) {
                 model.ServerMessage.DebugUpdate debugUpdateMessage = (model.ServerMessage.DebugUpdate) message;
-                myStrategy.debugUpdate(debugUpdateMessage.getPlayerView(), debug);
+                myStrategy.debugUpdate(debugUpdateMessage.getPlayerView(), debugInterface);
                 new model.ClientMessage.DebugUpdateDone().writeTo(outputStream);
                 outputStream.flush();
             } else {

@@ -29,8 +29,8 @@ impl<G: Game> ClientGen<G> for trans_gen::GeneratorImpl<Generator> {
             &project_file!(options, "MyStrategy.kt"),
         )?;
         write_file(
-            src_path.join("Debug.kt"),
-            &project_file!(options, "Debug.kt"),
+            src_path.join("DebugInterface.kt"),
+            &project_file!(options, "DebugInterface.kt"),
         )?;
         write_file(
             src_path.join("Runner.kt"),

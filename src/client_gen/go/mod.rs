@@ -28,8 +28,8 @@ impl<G: Game> ClientGen<G> for trans_gen::GeneratorImpl<Generator> {
             &project_file!(options, "go.mod"),
         )?;
         write_file(
-            options.target_dir.join("debug.go"),
-            &project_file!(options, "debug.go"),
+            options.target_dir.join("debug_interface.go"),
+            &project_file!(options, "debug_interface.go"),
         )?;
         write_file(
             options.target_dir.join("main.go"),

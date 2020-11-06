@@ -1,8 +1,7 @@
 import java.io.IOException
 import java.io.OutputStream
 
-class Debug(private val stream: OutputStream) {
-
+class DebugInterface(private val stream: OutputStream) {
     fun send(command: model.DebugCommand) {
         try {
             model.ClientMessage.DebugMessage(command).writeTo(stream)

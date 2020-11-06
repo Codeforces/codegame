@@ -29,8 +29,8 @@ impl<G: Game> ClientGen<G> for trans_gen::GeneratorImpl<Generator> {
             &project_file!(options, "MyStrategy.scala"),
         )?;
         write_file(
-            src_path.join("Debug.scala"),
-            &project_file!(options, "Debug.scala"),
+            src_path.join("DebugInterface.scala"),
+            &project_file!(options, "DebugInterface.scala"),
         )?;
         write_file(
             src_path.join("Runner.scala"),

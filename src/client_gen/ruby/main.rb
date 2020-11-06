@@ -2,7 +2,7 @@ require 'socket'
 require_relative 'stream_wrapper'
 require_relative 'model'
 require_relative 'my_strategy'
-require_relative 'debug'
+require_relative 'debug_interface'
 
 class SocketWrapper
     def initialize(socket)
@@ -41,17 +41,17 @@ class Runner
 
     def run()
         strategy = MyStrategy.new()
-        debug = Debug.new(@writer)
+        debug_interface = DebugInterface.new(@writer)
 
         while true
             message = ServerMessage.read_from(@reader)
             if message.instance_of? ServerMessage::GetAction
-                ClientMessage::ActionMessage.new(strategy.get_action(message.player_view, debug)).write_to(@writer)
+                ClientMessage::ActionMessage.new(strategy.get_action(message.player_view, debug_interface)).write_to(@writer)
                 @writer.flush()
             elsif message.instance_of? ServerMessage::Finish
                 break
             elsif message.instance_of? ServerMessage::DebugUpdate
-                strategy.debug_update(message.player_view, debug)
+                strategy.debug_update(message.player_view, debug_interface)
                 ClientMessage::DebugUpdateDone.new().write_to(@writer)
                 @writer.flush()
             else

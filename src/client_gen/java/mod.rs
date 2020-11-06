@@ -29,8 +29,8 @@ impl<G: Game> ClientGen<G> for trans_gen::GeneratorImpl<Generator> {
             &project_file!(options, "MyStrategy.java"),
         )?;
         write_file(
-            src_path.join("Debug.java"),
-            &project_file!(options, "Debug.java"),
+            src_path.join("DebugInterface.java"),
+            &project_file!(options, "DebugInterface.java"),
         )?;
         write_file(
             src_path.join("Runner.java"),

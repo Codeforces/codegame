@@ -25,21 +25,21 @@ namespace ProjectName
         public void Run()
         {
             var myStrategy = new MyStrategy();
-            var debug = new Debug(writer);
+            var debugInterface = new DebugInterface(writer);
             var running = true;
             while (running)
             {
                 switch (Model.ServerMessage.ReadFrom(reader))
                 {
                     case Model.ServerMessage.GetAction message:
-                        new Model.ClientMessage.ActionMessage(myStrategy.GetAction(message.PlayerView, debug)).WriteTo(writer);
+                        new Model.ClientMessage.ActionMessage(myStrategy.GetAction(message.PlayerView, debugInterface)).WriteTo(writer);
                         writer.Flush();
                         break;
                     case Model.ServerMessage.Finish message:
                         running = false;
                         break;
                     case Model.ServerMessage.DebugUpdate message:
-                        myStrategy.DebugUpdate(message.PlayerView, debug);
+                        myStrategy.DebugUpdate(message.PlayerView, debugInterface);
                         new Model.ClientMessage.DebugUpdateDone().WriteTo(writer);
                         writer.Flush();
                         break;

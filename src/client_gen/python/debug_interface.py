@@ -1,7 +1,7 @@
 import model
 
 
-class Debug:
+class DebugInterface:
     def __init__(self, writer):
         self.writer = writer
 

@@ -1,6 +1,6 @@
 const model = require('./model/index');
 
-class Debug {
+class DebugInterface {
     constructor(streamWrapper) {
         this.streamWrapper = streamWrapper;
     }
@@ -11,4 +11,4 @@ class Debug {
     }
 }
 
-module.exports.Debug = Debug;
+module.exports.DebugInterface = DebugInterface;

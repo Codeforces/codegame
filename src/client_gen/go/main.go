@@ -35,7 +35,7 @@ func NewRunner(host string, port uint16, token string) Runner {
 
 func (runner Runner) Run() {
 	myStrategy := NewMyStrategy()
-	debug := Debug{
+	debugInterface := DebugInterface{
 		Writer: runner.writer,
 	}
 loop:
@@ -43,7 +43,7 @@ loop:
 		switch message := ReadServerMessage(runner.reader).(type) {
 		case ServerMessageGetAction:
 			ClientMessageActionMessage{
-				Action: myStrategy.getAction(message.PlayerView, debug),
+				Action: myStrategy.getAction(message.PlayerView, debugInterface),
 			}.Write(runner.writer)
 			err := runner.writer.Flush()
 			if err != nil {
@@ -52,7 +52,7 @@ loop:
 		case ServerMessageFinish:
 			break loop
 		case ServerMessageDebugUpdate:
-			myStrategy.debugUpdate(message.PlayerView, debug)
+			myStrategy.debugUpdate(message.PlayerView, debugInterface)
 			ClientMessageDebugUpdateDone{}.Write(runner.writer)
 			err := runner.writer.Flush()
 			if err != nil {

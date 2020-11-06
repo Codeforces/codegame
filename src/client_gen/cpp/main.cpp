@@ -1,4 +1,4 @@
-#include "Debug.hpp"
+#include "DebugInterface.hpp"
 #include "MyStrategy.hpp"
 #include "TcpStream.hpp"
 #include "model/Model.hpp"
@@ -17,17 +17,17 @@ public:
     }
     void run()
     {
-        Debug debug(outputStream);
+        DebugInterface debugInterface(outputStream);
         MyStrategy myStrategy;
         while (true) {
             auto message = ServerMessage::readFrom(*inputStream);
             if (auto getActionMessage = std::dynamic_pointer_cast<ServerMessage::GetAction>(message)) {
-                ClientMessage::ActionMessage(myStrategy.getAction(getActionMessage->playerView, debug)).writeTo(*outputStream);
+                ClientMessage::ActionMessage(myStrategy.getAction(getActionMessage->playerView, debugInterface)).writeTo(*outputStream);
                 outputStream->flush();
             } else if (auto finishMessage = std::dynamic_pointer_cast<ServerMessage::Finish>(message)) {
                 break;
             } else if (auto debugUpdateMessage = std::dynamic_pointer_cast<ServerMessage::DebugUpdate>(message)) {
-                myStrategy.debugUpdate(debugUpdateMessage->playerView, debug);
+                myStrategy.debugUpdate(debugUpdateMessage->playerView, debugInterface);
                 ClientMessage::DebugUpdateDone().writeTo(*outputStream);
                 outputStream->flush();
             }

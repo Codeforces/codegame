@@ -32,8 +32,8 @@ impl<G: Game> ClientGen<G> for trans_gen::GeneratorImpl<Generator> {
             &project_file!(options, "app.d"),
         )?;
         write_file(
-            options.target_dir.join("source").join("debugger.d"),
-            &project_file!(options, "debugger.d"),
+            options.target_dir.join("source").join("debug_interface.d"),
+            &project_file!(options, "debug_interface.d"),
         )?;
         write_file(
             options.target_dir.join("source").join("my_strategy.d"),

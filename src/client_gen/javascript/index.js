@@ -5,7 +5,7 @@ const Socket = require('net').Socket;
 
 const model = require('./model/index');
 const MyStrategy = require('./my-strategy').MyStrategy;
-const Debug = require('./debug').Debug;
+const DebugInterface = require('./debug-interface').DebugInterface;
 
 class Runner {
     constructor(host, port, token) {
@@ -40,16 +40,16 @@ class Runner {
             await this.connect();
             let message, playerView, actions;
             const strategy = new MyStrategy();
-            const debug = new Debug(this.streamWrapper);
+            const debugInterface = new DebugInterface(this.streamWrapper);
             while (true) {
                 message = await model.ServerMessage.readFrom(this.streamWrapper);
                 if (message instanceof model.ServerMessage.GetAction) {
-                    await (new model.ClientMessage.ActionMessage(await strategy.getAction(message.playerView, debug)).writeTo(this.streamWrapper));
+                    await (new model.ClientMessage.ActionMessage(await strategy.getAction(message.playerView, debugInterface)).writeTo(this.streamWrapper));
                     // TODO: only flush stream once here?
                 } else if (message instanceof model.ServerMessage.Finish) {
                     break;
                 } else if (message instanceof model.ServerMessage.DebugUpdate) {
-                    await strategy.debugUpdate(message.playerView, debug);
+                    await strategy.debugUpdate(message.playerView, debugInterface);
                     await (new model.ClientMessage.DebugUpdateDone().writeTo(this.streamWrapper));
                     // TODO: only flush stream once here?
                 } else {

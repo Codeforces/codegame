@@ -26,9 +26,9 @@ struct Runner {
     writer: Box<dyn std::io::Write>,
 }
 
-struct Debug<'a>(&'a mut dyn std::io::Write);
+struct DebugInterface<'a>(&'a mut dyn std::io::Write);
 
-impl Debug<'_> {
+impl DebugInterface<'_> {
     fn send(&mut self, command: model::DebugCommand) {
         use trans::Trans;
         model::ClientMessage::DebugMessage { command }
@@ -60,14 +60,15 @@ impl Runner {
             match model::ServerMessage::read_from(&mut self.reader)? {
                 model::ServerMessage::GetAction { player_view } => {
                     let message = model::ClientMessage::ActionMessage {
-                        action: strategy.get_action(&player_view, &mut Debug(&mut self.writer)),
+                        action: strategy
+                            .get_action(&player_view, &mut DebugInterface(&mut self.writer)),
                     };
                     message.write_to(&mut self.writer)?;
                     self.writer.flush()?;
                 }
                 model::ServerMessage::Finish {} => break,
                 model::ServerMessage::DebugUpdate { player_view } => {
-                    strategy.debug_update(&player_view, &mut Debug(&mut self.writer));
+                    strategy.debug_update(&player_view, &mut DebugInterface(&mut self.writer));
                     model::ClientMessage::DebugUpdateDone {}.write_to(&mut self.writer)?;
                     self.writer.flush()?;
                 }

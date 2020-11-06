@@ -1,13 +1,13 @@
-#ifndef _DEBUG_HPP_
-#define _DEBUG_HPP_
+#ifndef _DEBUG_INTERFACE_HPP_
+#define _DEBUG_INTERFACE_HPP_
 
 #include "Stream.hpp"
 #include "model/DebugCommand.hpp"
 #include <memory>
 
-class Debug {
+class DebugInterface {
 public:
-    Debug(const std::shared_ptr<OutputStream>& outputStream);
+    DebugInterface(const std::shared_ptr<OutputStream>& outputStream);
     void send(const DebugCommand& command);
 
 private:

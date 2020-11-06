@@ -1,7 +1,7 @@
 import model;
 import my_strategy;
 import stream;
-import debugger;
+import debug_interface;
 import std.socket;
 import std.conv;
 import std.exception;
@@ -61,14 +61,14 @@ class Runner
     void run()
     {
         auto myStrategy = new MyStrategy();
-        auto debugger = new Debugger(stream);
+        auto debugInterface = new DebugInterface(stream);
         while (true)
         {
             ServerMessage message = ServerMessage.readFrom(stream);
             if (auto getActionMessage = cast(ServerMessage.GetAction)(message))
             {
                 new ClientMessage.ActionMessage(myStrategy.getAction(getActionMessage.playerView,
-                        debugger)).writeTo(stream);
+                        debugInterface)).writeTo(stream);
                 stream.flush();
             }
             else if (auto finishMessage = cast(ServerMessage.Finish)(message))
@@ -77,7 +77,7 @@ class Runner
             }
             else if (auto debugUpdateMessage = cast(ServerMessage.DebugUpdate)(message))
             {
-                myStrategy.debugUpdate(debugUpdateMessage.playerView, debugger);
+                myStrategy.debugUpdate(debugUpdateMessage.playerView, debugInterface);
                 new ClientMessage.DebugUpdateDone().writeTo(stream);
                 stream.flush();
             }

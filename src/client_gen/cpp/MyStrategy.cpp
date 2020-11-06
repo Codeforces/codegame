@@ -3,9 +3,9 @@
 
 MyStrategy::MyStrategy() {}
 
-Action MyStrategy::getAction(const PlayerView& playerView, Debug& debug)
+Action MyStrategy::getAction(const PlayerView& playerView, DebugInterface& debugInterface)
 {
     throw std::exception("Write your strategy here");
 }
 
-void MyStrategy::debugUpdate(const PlayerView& playerView, Debug& debug) {}
+void MyStrategy::debugUpdate(const PlayerView& playerView, DebugInterface& debugInterface) {}

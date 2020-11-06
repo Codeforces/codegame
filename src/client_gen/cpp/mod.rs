@@ -36,12 +36,12 @@ impl<G: Game> ClientGen<G> for trans_gen::GeneratorImpl<Generator> {
             &project_file!(options, "TcpStream.cpp"),
         )?;
         write_file(
-            options.target_dir.join("Debug.hpp"),
-            &project_file!(options, "Debug.hpp"),
+            options.target_dir.join("DebugInterface.hpp"),
+            &project_file!(options, "DebugInterface.hpp"),
         )?;
         write_file(
-            options.target_dir.join("Debug.cpp"),
-            &project_file!(options, "Debug.cpp"),
+            options.target_dir.join("DebugInterface.cpp"),
+            &project_file!(options, "DebugInterface.cpp"),
         )?;
         write_file(
             options.target_dir.join("MyStrategy.hpp"),

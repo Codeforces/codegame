@@ -10,8 +10,8 @@ func NewMyStrategy() MyStrategy {
 	return MyStrategy{}
 }
 
-func (strategy MyStrategy) getAction(playerView PlayerView, debug Debug) Action {
+func (strategy MyStrategy) getAction(playerView PlayerView, debugInterface DebugInterface) Action {
 	panic("Write your strategy here")
 }
 
-func (strategy MyStrategy) debugUpdate(playerView PlayerView, debug Debug) {}
+func (strategy MyStrategy) debugUpdate(playerView PlayerView, debugInterface DebugInterface) {}

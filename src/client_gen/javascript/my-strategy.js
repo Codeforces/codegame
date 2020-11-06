@@ -1,11 +1,11 @@
 const model = require('./model/index');
-const Debug = require('./debug').Debug;
+const DebugInterface = require('./debug-interface').DebugInterface;
 
 class MyStrategy {
-    async getAction(playerView, debug) {
+    async getAction(playerView, debugInterface) {
         throw "Write your strategy here";
     }
-    async debugUpdate(playerView, debug) { }
+    async debugUpdate(playerView, debugInterface) { }
 }
 
 module.exports.MyStrategy = MyStrategy;

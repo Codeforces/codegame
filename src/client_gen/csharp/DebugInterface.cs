@@ -2,10 +2,10 @@ using System.IO;
 
 namespace ProjectName
 {
-    public class Debug
+    public class DebugInterface
     {
         private BinaryWriter writer;
-        public Debug(BinaryWriter writer)
+        public DebugInterface(BinaryWriter writer)
         {
             this.writer = writer;
         }

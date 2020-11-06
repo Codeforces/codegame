@@ -28,8 +28,8 @@ impl<G: Game> ClientGen<G> for trans_gen::GeneratorImpl<Generator> {
             project_file!(options, "index.js"),
         )?;
         write_file(
-            options.target_dir.join("debug.js"),
-            project_file!(options, "debug.js"),
+            options.target_dir.join("debug-interface.js"),
+            project_file!(options, "debug-interface.js"),
         )?;
         write_file(
             options.target_dir.join("my-strategy.js"),

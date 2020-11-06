@@ -20,18 +20,18 @@ module Runner =
 
         member this.run =
             let myStrategy = new MyStrategy()
-            let debug = new Debug(writer)
+            let debugInterface = new DebugInterface(writer)
 
             let rec loop () =
                 match Model.ServerMessage.readFrom reader with
                 | Model.ServerMessage.GetAction message ->
-                    (Model.ClientMessage.ActionMessage { Action = myStrategy.getAction (message.PlayerView, debug) }).writeTo
-                        writer
+                    (Model.ClientMessage.ActionMessage
+                        { Action = myStrategy.getAction (message.PlayerView, debugInterface) }).writeTo writer
                     writer.Flush()
                     loop ()
                 | Model.ServerMessage.Finish message -> ()
                 | Model.ServerMessage.DebugUpdate message ->
-                    myStrategy.debugUpdate (message.PlayerView, debug)
+                    myStrategy.debugUpdate (message.PlayerView, debugInterface)
                     (new Model.ClientMessageDebugUpdateDone()).writeTo writer
                     writer.Flush()
                     loop ()

@@ -1,7 +1,7 @@
 import model;
 import stream;
 
-class Debugger
+class DebugInterface
 {
     this(Stream stream)
     {

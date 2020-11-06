@@ -1,10 +1,10 @@
 import java.io.IOException;
 import java.io.OutputStream;
 
-public class Debug {
+public class DebugInterface {
     private OutputStream stream;
 
-    public Debug(OutputStream stream) {
+    public DebugInterface(OutputStream stream) {
         this.stream = stream;
     }
 

@@ -28,8 +28,8 @@ impl<G: Game> ClientGen<G> for trans_gen::GeneratorImpl<Generator> {
             project_file!(options, "main.rb"),
         )?;
         write_file(
-            options.target_dir.join("debug.rb"),
-            project_file!(options, "debug.rb"),
+            options.target_dir.join("debug_interface.rb"),
+            project_file!(options, "debug_interface.rb"),
         )?;
         write_file(
             options.target_dir.join("my_strategy.rb"),
