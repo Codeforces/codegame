@@ -20,7 +20,7 @@ module Runner =
 
         member this.run =
             let myStrategy = new MyStrategy()
-            let debugInterface = new DebugInterface(writer)
+            let debugInterface = new DebugInterface(reader, writer)
 
             let rec loop () =
                 match Model.ServerMessage.readFrom reader with

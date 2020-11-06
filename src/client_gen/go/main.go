@@ -36,6 +36,7 @@ func NewRunner(host string, port uint16, token string) Runner {
 func (runner Runner) Run() {
 	myStrategy := NewMyStrategy()
 	debugInterface := DebugInterface{
+		Reader: runner.reader,
 		Writer: runner.writer,
 	}
 loop:

@@ -25,7 +25,7 @@ namespace ProjectName
         public void Run()
         {
             var myStrategy = new MyStrategy();
-            var debugInterface = new DebugInterface(writer);
+            var debugInterface = new DebugInterface(reader, writer);
             var running = true;
             while (running)
             {

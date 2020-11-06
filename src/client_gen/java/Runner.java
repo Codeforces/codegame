@@ -24,7 +24,7 @@ public class Runner {
 
     void run() throws IOException {
         MyStrategy myStrategy = new MyStrategy();
-        DebugInterface debugInterface = new DebugInterface(outputStream);
+        DebugInterface debugInterface = new DebugInterface(inputStream, outputStream);
         while (true) {
             model.ServerMessage message = model.ServerMessage.readFrom(inputStream);
             if (message instanceof model.ServerMessage.GetAction) {

@@ -20,7 +20,7 @@ class Runner:
 
     def run(self):
         strategy = MyStrategy()
-        debug_interface = DebugInterface(self.writer)
+        debug_interface = DebugInterface(self.reader, self.writer)
 
         while True:
             message = model.ServerMessage.read_from(self.reader)

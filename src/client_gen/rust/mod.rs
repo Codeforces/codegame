@@ -14,6 +14,7 @@ impl<G: Game> ClientGen<G> for trans_gen::GeneratorImpl<Generator> {
         );
         gen.add(&trans::Schema::of::<ClientMessage<G>>());
         gen.add(&trans::Schema::of::<ServerMessage<G>>());
+        gen.add(&trans::Schema::of::<G::DebugState>());
         gen.result().write_to(options.target_dir.join("model"))?;
         write_file(
             options.target_dir.join("Dockerfile"),

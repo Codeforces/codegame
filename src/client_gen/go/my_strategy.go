@@ -14,4 +14,7 @@ func (strategy MyStrategy) getAction(playerView PlayerView, debugInterface Debug
 	panic("Write your strategy here")
 }
 
-func (strategy MyStrategy) debugUpdate(playerView PlayerView, debugInterface DebugInterface) {}
+func (strategy MyStrategy) debugUpdate(playerView PlayerView, debugInterface DebugInterface) {
+	debugInterface.Send(DebugCommandClear{})
+	debugInterface.GetState()
+}

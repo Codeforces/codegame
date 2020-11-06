@@ -26,14 +26,26 @@ struct Runner {
     writer: Box<dyn std::io::Write>,
 }
 
-struct DebugInterface<'a>(&'a mut dyn std::io::Write);
+struct DebugInterface<'a> {
+    reader: &'a mut dyn std::io::Read,
+    writer: &'a mut dyn std::io::Write,
+}
 
 impl DebugInterface<'_> {
     fn send(&mut self, command: model::DebugCommand) {
         use trans::Trans;
         model::ClientMessage::DebugMessage { command }
-            .write_to(&mut self.0)
+            .write_to(self.writer)
             .expect("Failed to write custom debug data");
+        self.writer.flush().expect("Failed to flush");
+    }
+    fn get_state(&mut self) -> model::DebugState {
+        use trans::Trans;
+        model::ClientMessage::RequestDebugState {}
+            .write_to(self.writer)
+            .expect("Failed to write request debug state message");
+        self.writer.flush().expect("Failed to flush");
+        model::DebugState::read_from(self.reader).expect("Failed to read debug state")
     }
 }
 
@@ -53,6 +65,12 @@ impl Runner {
             writer: Box::new(writer),
         })
     }
+    fn debug_interface(&mut self) -> DebugInterface {
+        DebugInterface {
+            reader: &mut self.reader,
+            writer: &mut self.writer,
+        }
+    }
     fn run(mut self) -> std::io::Result<()> {
         use trans::Trans;
         let mut strategy = MyStrategy::new();
@@ -60,15 +78,14 @@ impl Runner {
             match model::ServerMessage::read_from(&mut self.reader)? {
                 model::ServerMessage::GetAction { player_view } => {
                     let message = model::ClientMessage::ActionMessage {
-                        action: strategy
-                            .get_action(&player_view, &mut DebugInterface(&mut self.writer)),
+                        action: strategy.get_action(&player_view, &mut self.debug_interface()),
                     };
                     message.write_to(&mut self.writer)?;
                     self.writer.flush()?;
                 }
                 model::ServerMessage::Finish {} => break,
                 model::ServerMessage::DebugUpdate { player_view } => {
-                    strategy.debug_update(&player_view, &mut DebugInterface(&mut self.writer));
+                    strategy.debug_update(&player_view, &mut self.debug_interface());
                     model::ClientMessage::DebugUpdateDone {}.write_to(&mut self.writer)?;
                     self.writer.flush()?;
                 }

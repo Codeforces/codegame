@@ -8,4 +8,8 @@ Action MyStrategy::getAction(const PlayerView& playerView, DebugInterface& debug
     throw std::exception("Write your strategy here");
 }
 
-void MyStrategy::debugUpdate(const PlayerView& playerView, DebugInterface& debugInterface) {}
+void MyStrategy::debugUpdate(const PlayerView& playerView, DebugInterface& debugInterface)
+{
+    debugInterface.send(DebugCommand::Clear());
+    debugInterface.getState();
+}

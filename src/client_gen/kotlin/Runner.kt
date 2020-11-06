@@ -23,7 +23,7 @@ internal constructor(host: String, port: Int, token: String) {
     @Throws(IOException::class)
     internal fun run() {
         val myStrategy = MyStrategy()
-        val debugInterface = DebugInterface(outputStream)
+        val debugInterface = DebugInterface(inputStream, outputStream)
         while (true) {
             val message = model.ServerMessage.readFrom(inputStream)
             if (message is model.ServerMessage.GetAction) {

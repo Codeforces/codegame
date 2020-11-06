@@ -11,6 +11,7 @@ impl<G: Game> ClientGen<G> for trans_gen::GeneratorImpl<Generator> {
         let src_path = options.target_dir.join("src").join("main").join("kotlin");
         gen.add(&trans::Schema::of::<ClientMessage<G>>());
         gen.add(&trans::Schema::of::<ServerMessage<G>>());
+        gen.add(&trans::Schema::of::<G::DebugState>());
         gen.result().write_to(&src_path)?;
         write_file(
             options.target_dir.join("Dockerfile"),

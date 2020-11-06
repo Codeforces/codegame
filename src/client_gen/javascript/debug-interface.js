@@ -9,6 +9,12 @@ class DebugInterface {
         await (new model.ClientMessage.DebugMessage(command)).writeTo(this.streamWrapper);
         // TODO: only flush stream once here?
     }
+
+    async getState() {
+        await (new model.ClientMessage.RequestDebugState()).writeTo(this.streamWrapper);
+        // TODO: only flush stream once here?
+        return await model.DebugState.readFrom(this.streamWrapper);
+    }
 }
 
 module.exports.DebugInterface = DebugInterface;

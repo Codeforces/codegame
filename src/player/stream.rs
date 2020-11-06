@@ -49,6 +49,17 @@ impl<G: Game> Player<G> for StreamPlayer<G> {
             loop {
                 match ClientMessage::<G>::read_from(&mut stream.reader)? {
                     ClientMessage::ActionMessage { action } => return Ok(action),
+                    ClientMessage::RequestDebugState {} => {
+                        if let Some(debug_interface) = debug_interface {
+                            debug_interface.state().write_to(&mut stream.writer)?;
+                            stream.writer.flush()?;
+                        } else {
+                            return Err(PlayerError::IOError(std::io::Error::new(
+                                std::io::ErrorKind::Other,
+                                "Requested debug state with no debug interface available",
+                            )));
+                        }
+                    }
                     ClientMessage::DebugMessage { command } => {
                         if let Some(debug_interface) = debug_interface {
                             debug_interface.send(command);
@@ -88,6 +99,10 @@ impl<G: Game> Player<G> for StreamPlayer<G> {
                             std::io::ErrorKind::Other,
                             "Unexpected action message in debug update",
                         )));
+                    }
+                    ClientMessage::RequestDebugState {} => {
+                        debug_interface.state().write_to(&mut stream.writer)?;
+                        stream.writer.flush()?;
                     }
                     ClientMessage::DebugMessage { command } => {
                         debug_interface.send(command);

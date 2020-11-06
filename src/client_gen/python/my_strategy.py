@@ -6,4 +6,5 @@ class MyStrategy:
         raise NotImplementedError()
 
     def debug_update(self, player_view, debug_interface):
-        pass
+        debug_interface.send(model.DebugCommand.Clear())
+        debug_interface.get_state()

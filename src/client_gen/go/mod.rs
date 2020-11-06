@@ -10,6 +10,7 @@ impl<G: Game> ClientGen<G> for trans_gen::GeneratorImpl<Generator> {
         let mut gen = Self::new(options.name, options.version, gen_options);
         gen.add(&trans::Schema::of::<ClientMessage<G>>());
         gen.add(&trans::Schema::of::<ServerMessage<G>>());
+        gen.add(&trans::Schema::of::<G::DebugState>());
         gen.result().write_to(options.target_dir)?;
         write_file(
             options.target_dir.join("Dockerfile"),

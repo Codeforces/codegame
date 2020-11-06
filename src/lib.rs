@@ -138,6 +138,8 @@ pub enum ClientMessage<G: Game> {
     },
     /// Signifies finish of the debug update
     DebugUpdateDone {},
+    /// Request debug state from the app
+    RequestDebugState {},
 }
 
 /// Message sent from server

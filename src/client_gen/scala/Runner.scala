@@ -21,7 +21,7 @@ object Runner extends App {
     outputStream.flush()
 
     val myStrategy = new MyStrategy()
-    val debugInterface = new DebugInterface(outputStream)
+    val debugInterface = new DebugInterface(inputStream, outputStream)
     while (true) {
       model.ServerMessage.readFrom(inputStream) match {
         case model.ServerMessage.GetAction(playerView) =>

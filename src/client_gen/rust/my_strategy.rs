@@ -18,5 +18,7 @@ impl MyStrategy {
         player_view: &model::PlayerView,
         debug_interface: &mut DebugInterface,
     ) {
+        debug_interface.send(model::DebugCommand::Clear {});
+        debug_interface.get_state();
     }
 }

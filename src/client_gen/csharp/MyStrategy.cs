@@ -9,6 +9,10 @@ namespace ProjectName
             throw new System.NotImplementedException();
         }
 
-        public void DebugUpdate(PlayerView playerView, DebugInterface debugInterface) { }
+        public void DebugUpdate(PlayerView playerView, DebugInterface debugInterface)
+        {
+            debugInterface.Send(new DebugCommand.Clear());
+            debugInterface.GetState();
+        }
     }
 }

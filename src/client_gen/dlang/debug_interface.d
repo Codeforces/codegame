@@ -13,6 +13,14 @@ class DebugInterface
         // TODO: Construct actual message, this is a hack :)
         stream.write(ClientMessage.DebugMessage.TAG);
         command.writeTo(stream);
+        stream.flush();
+    }
+
+    DebugState getState()
+    {
+        new ClientMessage.RequestDebugState().writeTo(stream);
+        stream.flush();
+        return DebugState.readFrom(stream);
     }
 
 private:

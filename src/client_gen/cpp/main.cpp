@@ -17,7 +17,7 @@ public:
     }
     void run()
     {
-        DebugInterface debugInterface(outputStream);
+        DebugInterface debugInterface(inputStream, outputStream);
         MyStrategy myStrategy;
         while (true) {
             auto message = ServerMessage::readFrom(*inputStream);

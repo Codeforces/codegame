@@ -41,7 +41,7 @@ class Runner
 
     def run()
         strategy = MyStrategy.new()
-        debug_interface = DebugInterface.new(@writer)
+        debug_interface = DebugInterface.new(@reader, @writer)
 
         while true
             message = ServerMessage.read_from(@reader)

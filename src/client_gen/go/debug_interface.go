@@ -6,15 +6,25 @@ import (
 )
 
 type DebugInterface struct {
+	Reader *bufio.Reader
 	Writer *bufio.Writer
 }
 
-func (debug DebugInterface) Send(command DebugCommand) {
+func (debugInterface DebugInterface) Send(command DebugCommand) {
 	ClientMessageDebugMessage{
 		Command: command,
-	}.Write(debug.Writer)
-	err := debug.Writer.Flush()
+	}.Write(debugInterface.Writer)
+	err := debugInterface.Writer.Flush()
 	if err != nil {
 		panic(err)
 	}
+}
+
+func (debugInterface DebugInterface) GetState() DebugState {
+	ClientMessageRequestDebugState{}.Write(debugInterface.Writer)
+	err := debugInterface.Writer.Flush()
+	if err != nil {
+		panic(err)
+	}
+	return ReadDebugState(debugInterface.Reader)
 }
