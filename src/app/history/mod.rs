@@ -264,11 +264,7 @@ impl<G: Game, T: RendererData<G>> History<G, T> {
             {
                 self.debug_data = Window {
                     current: shared_state.debug_data[tick - 1].clone(),
-                    prev: if tick > 1 {
-                        Some(shared_state.debug_data[tick - 2].clone())
-                    } else {
-                        None
-                    },
+                    prev: Some(shared_state.debug_data[tick - min(tick, 2)].clone()),
                 };
             } else {
                 self.debug_data = Window {
