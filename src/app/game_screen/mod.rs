@@ -51,7 +51,7 @@ impl<G: Game, R: Renderer<G>> GameScreen<G, R> {
             (0..processor
                 .as_ref()
                 .map_or(0, |processor| processor.player_count()))
-                .map(|index| renderer.debug_state(index))
+                .map(|index| renderer.debug_state(history.current_state().current.game, index))
                 .collect(),
         ));
 
@@ -153,7 +153,10 @@ where
 
         if let Some(processor) = &self.processor {
             *self.debug_state.lock().unwrap() = (0..processor.player_count())
-                .map(|index| self.renderer.debug_state(index))
+                .map(|index| {
+                    self.renderer
+                        .debug_state(self.history.current_state().current.game, index)
+                })
                 .collect();
         }
 

@@ -30,8 +30,8 @@ impl<G: Game, R: Renderer<G>> Renderer<G> for RendererWrapper<R> {
     fn handle_event(&mut self, event: &geng::Event) {
         self.0.borrow_mut().handle_event(event);
     }
-    fn debug_state(&self, player_index: usize) -> G::DebugState {
-        self.0.borrow().debug_state(player_index)
+    fn debug_state(&self, game: &G, player_index: usize) -> G::DebugState {
+        self.0.borrow().debug_state(game, player_index)
     }
 }
 

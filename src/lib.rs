@@ -199,7 +199,7 @@ pub trait Renderer<G: Game>: 'static {
     fn handle_event(&mut self, event: &geng::Event) {
         #![allow(unused_variables)]
     }
-    fn debug_state(&self, player_index: usize) -> G::DebugState;
+    fn debug_state(&self, game: &G, player_index: usize) -> G::DebugState;
 }
 
 pub fn save_replay_tick_handler<G: Game, T: Write + Send + 'static>(
