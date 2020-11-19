@@ -272,7 +272,7 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
     fn game_init_config(&self) -> GameInitConfig<G> {
         match &self.game_state_path {
             Some(path) => GameInitConfig::LoadFrom(path.clone()),
-            Non => GameInitConfig::Create(self.game_options_config.get()),
+            None => GameInitConfig::Create(self.game_options_config.get()),
         }
     }
     fn full_options(&self) -> FullOptions<G> {
