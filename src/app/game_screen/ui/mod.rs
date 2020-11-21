@@ -74,7 +74,7 @@ impl UI {
             self.play_stop_button.ui(),
             self.timeline.ui(),
             self.view_speed.ui(default_tps),
-            self.volume.ui(),
+            // TODO: self.volume.ui(),
             self.fullscreen_button.ui(),
         ]
         .align(vec2(0.5, 0.0))
