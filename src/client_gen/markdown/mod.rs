@@ -19,7 +19,7 @@ impl<G: Game> ClientGen<G> for trans_gen::GeneratorImpl<Generator> {
                     project_file!(options, "api-intro.md"),
                 )?;
             }
-            "en" => {
+            "ru" => {
                 write_file(
                     options.target_dir.join("api-intro.md"),
                     project_file!(options, "api-intro-ru.md"),
