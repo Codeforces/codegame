@@ -46,7 +46,7 @@ class Runner
         while true
             message = ServerMessage.read_from(@reader)
             if message.instance_of? ServerMessage::GetAction
-                ClientMessage::ActionMessage.new(strategy.get_action(message.player_view, debug_interface)).write_to(@writer)
+                ClientMessage::ActionMessage.new(strategy.get_action(message.player_view, message.debug_available ? debug_interface : nil)).write_to(@writer)
                 @writer.flush()
             elsif message.instance_of? ServerMessage::Finish
                 break

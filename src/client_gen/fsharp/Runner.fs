@@ -26,7 +26,10 @@ module Runner =
                 match Model.ServerMessage.readFrom reader with
                 | Model.ServerMessage.GetAction message ->
                     (Model.ClientMessage.ActionMessage
-                        { Action = myStrategy.getAction (message.PlayerView, debugInterface) }).writeTo writer
+                        { Action =
+                              myStrategy.getAction
+                                  (message.PlayerView, (if message.DebugAvailable then Some debugInterface else None)) }).writeTo
+                        writer
                     writer.Flush()
                     loop ()
                 | Model.ServerMessage.Finish message -> ()

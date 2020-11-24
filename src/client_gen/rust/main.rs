@@ -76,9 +76,20 @@ impl Runner {
         let mut strategy = MyStrategy::new();
         loop {
             match model::ServerMessage::read_from(&mut self.reader)? {
-                model::ServerMessage::GetAction { player_view } => {
+                model::ServerMessage::GetAction {
+                    player_view,
+                    debug_available,
+                } => {
+                    let mut debug_interface = self.debug_interface();
                     let message = model::ClientMessage::ActionMessage {
-                        action: strategy.get_action(&player_view, &mut self.debug_interface()),
+                        action: strategy.get_action(
+                            &player_view,
+                            if debug_available {
+                                Some(&mut debug_interface)
+                            } else {
+                                None
+                            },
+                        ),
                     };
                     message.write_to(&mut self.writer)?;
                     self.writer.flush()?;

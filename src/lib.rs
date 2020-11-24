@@ -160,6 +160,9 @@ pub enum ServerMessage<G: Game> {
         /// Player's view
         #[trans_doc = "ru:Информация доступная игроку"]
         player_view: G::PlayerView,
+        /// Whether app is running with debug interface available
+        #[trans_doc = "ru:Доступен ли отладочный интерфейс приложения"]
+        debug_available: bool,
     },
     /// Signifies end of the game
     #[trans_doc = "ru:Сигнализирует конец игры"]

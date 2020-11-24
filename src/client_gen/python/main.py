@@ -26,7 +26,7 @@ class Runner:
             message = model.ServerMessage.read_from(self.reader)
             if isinstance(message, model.ServerMessage.GetAction):
                 model.ClientMessage.ActionMessage(strategy.get_action(
-                    message.player_view, debug_interface)).write_to(self.writer)
+                    message.player_view, debug_interface if message.debug_available else None)).write_to(self.writer)
                 self.writer.flush()
             elif isinstance(message, model.ServerMessage.Finish):
                 break

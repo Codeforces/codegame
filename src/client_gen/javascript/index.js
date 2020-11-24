@@ -44,7 +44,7 @@ class Runner {
             while (true) {
                 message = await model.ServerMessage.readFrom(this.streamWrapper);
                 if (message instanceof model.ServerMessage.GetAction) {
-                    await (new model.ClientMessage.ActionMessage(await strategy.getAction(message.playerView, debugInterface)).writeTo(this.streamWrapper));
+                    await (new model.ClientMessage.ActionMessage(await strategy.getAction(message.playerView, message.debugAvailable ? debugInterface : null)).writeTo(this.streamWrapper));
                     // TODO: only flush stream once here?
                 } else if (message instanceof model.ServerMessage.Finish) {
                     break;

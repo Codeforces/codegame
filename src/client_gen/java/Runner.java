@@ -29,7 +29,7 @@ public class Runner {
             model.ServerMessage message = model.ServerMessage.readFrom(inputStream);
             if (message instanceof model.ServerMessage.GetAction) {
                 model.ServerMessage.GetAction getActionMessage = (model.ServerMessage.GetAction) message;
-                new model.ClientMessage.ActionMessage(myStrategy.getAction(getActionMessage.getPlayerView(), debugInterface)).writeTo(outputStream);
+                new model.ClientMessage.ActionMessage(myStrategy.getAction(getActionMessage.getPlayerView(), getActionMessage.isDebugAvailable() ? debugInterface : null)).writeTo(outputStream);
                 outputStream.flush();
             } else if (message instanceof model.ServerMessage.Finish) {
                 break;

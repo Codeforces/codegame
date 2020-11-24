@@ -68,7 +68,7 @@ class Runner
             if (auto getActionMessage = cast(ServerMessage.GetAction)(message))
             {
                 new ClientMessage.ActionMessage(myStrategy.getAction(getActionMessage.playerView,
-                        debugInterface)).writeTo(stream);
+                        getActionMessage.debugAvailable ? debugInterface : null)).writeTo(stream);
                 stream.flush();
             }
             else if (auto finishMessage = cast(ServerMessage.Finish)(message))

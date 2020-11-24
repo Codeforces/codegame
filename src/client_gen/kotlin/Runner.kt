@@ -27,7 +27,7 @@ internal constructor(host: String, port: Int, token: String) {
         while (true) {
             val message = model.ServerMessage.readFrom(inputStream)
             if (message is model.ServerMessage.GetAction) {
-                model.ClientMessage.ActionMessage(myStrategy.getAction(message.playerView, debugInterface)).writeTo(outputStream)
+                model.ClientMessage.ActionMessage(myStrategy.getAction(message.playerView, if (message.debugAvailable) debugInterface else null)).writeTo(outputStream)
                 outputStream.flush()
             } else if (message is model.ServerMessage.Finish) {
                 break

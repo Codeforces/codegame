@@ -43,6 +43,7 @@ impl<G: Game> Player<G> for StreamPlayer<G> {
         let mut get_action = move || {
             ServerMessage::<G>::GetAction {
                 player_view: player_view.clone(), // TODO: dont clone
+                debug_available: debug_interface.is_some(),
             }
             .write_to(&mut stream.writer)?;
             stream.writer.flush()?;

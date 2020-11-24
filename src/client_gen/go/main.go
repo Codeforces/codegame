@@ -43,8 +43,14 @@ loop:
 	for {
 		switch message := ReadServerMessage(runner.reader).(type) {
 		case ServerMessageGetAction:
+			var action Action
+			if message.DebugAvailable {
+				action = myStrategy.getAction(message.PlayerView, &debugInterface)
+			} else {
+				action = myStrategy.getAction(message.PlayerView, nil)
+			}
 			ClientMessageActionMessage{
-				Action: myStrategy.getAction(message.PlayerView, debugInterface),
+				Action: action,
 			}.Write(runner.writer)
 			err := runner.writer.Flush()
 			if err != nil {

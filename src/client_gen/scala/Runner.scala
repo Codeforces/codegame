@@ -24,8 +24,8 @@ object Runner extends App {
     val debugInterface = new DebugInterface(inputStream, outputStream)
     while (true) {
       model.ServerMessage.readFrom(inputStream) match {
-        case model.ServerMessage.GetAction(playerView) =>
-          model.ClientMessage.ActionMessage(myStrategy.getAction(playerView, debugInterface)).writeTo(outputStream)
+        case model.ServerMessage.GetAction(playerView, debugAvailable) =>
+          model.ClientMessage.ActionMessage(myStrategy.getAction(playerView, if (debugAvailable) Some(debugInterface) else None)).writeTo(outputStream)
           outputStream.flush()
         case model.ServerMessage.Finish() => return
         case model.ServerMessage.DebugUpdate(playerView) =>

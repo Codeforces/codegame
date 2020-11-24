@@ -32,7 +32,7 @@ namespace ProjectName
                 switch (Model.ServerMessage.ReadFrom(reader))
                 {
                     case Model.ServerMessage.GetAction message:
-                        new Model.ClientMessage.ActionMessage(myStrategy.GetAction(message.PlayerView, debugInterface)).WriteTo(writer);
+                        new Model.ClientMessage.ActionMessage(myStrategy.GetAction(message.PlayerView, message.DebugAvailable ? debugInterface : null)).WriteTo(writer);
                         writer.Flush();
                         break;
                     case Model.ServerMessage.Finish message:
