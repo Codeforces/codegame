@@ -162,10 +162,18 @@ where
                 .map_or(true, |filter| filter.contains(<CG as ClientGen<G>>::NAME))
             {
                 let empty_extra_files = HashMap::new();
+                let language_target_dir = options.target_dir.join(<CG as ClientGen<G>>::NAME);
                 test::<G, CG>(
-                    &Options {
-                        target_dir: options.target_dir.join(<CG as ClientGen<G>>::NAME).as_ref(),
-                        ..*options
+                    &if language_filter
+                        .as_ref()
+                        .map_or(false, |filter| filter.len() == 1)
+                    {
+                        Options { ..*options }
+                    } else {
+                        Options {
+                            target_dir: language_target_dir.as_ref(),
+                            ..*options
+                        }
                     },
                     gen_options
                         .get(<CG as ClientGen<G>>::NAME)

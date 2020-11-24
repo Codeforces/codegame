@@ -1,15 +1,19 @@
 use super::*;
 
 /// Debug commands that can be sent while debugging with the app
+#[trans_doc = "ru:Команды могут быть отправлены приложению для помощи в отладке"]
 #[derive(Serialize, Deserialize, Trans)]
 #[trans(no_generics_in_name)]
 pub enum DebugCommand<G: Game> {
     /// Add debug data to current tick
+    #[trans_doc = "ru:Добавить отладочные данные в текущий тик"]
     Add {
         /// Data to add
+        #[trans_doc = "ru:Данные для добавления"]
         data: G::DebugData,
     },
     /// Clear current tick's debug data
+    #[trans_doc = "ru:Очистить отладочные данные текущего тика"]
     Clear,
 }
 

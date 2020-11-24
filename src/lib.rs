@@ -122,40 +122,53 @@ pub trait Game: Diff {
 }
 
 /// Message sent from client
+#[trans_doc = "ru:Сообщение отправляемое клиентом"]
 #[derive(Serialize, Deserialize, Trans)]
 #[trans(no_generics_in_name)]
 pub enum ClientMessage<G: Game> {
     /// Ask app to perform new debug command
+    #[trans_doc = "ru:Отправить отладочную команду приложению"]
     DebugMessage {
         /// Command to perform
+        #[trans_doc = "ru:Команда для исполнения"]
         #[serde(bound = "")]
         command: DebugCommand<G>,
     },
     /// Reply for ServerMessage::GetAction
+    #[trans_doc = "ru:Ответ на ServerMessage::GetAction"]
     ActionMessage {
         /// Player's action
+        #[trans_doc = "ru:Действие игрока"]
         action: G::Action,
     },
     /// Signifies finish of the debug update
+    #[trans_doc = "ru:Сигнализирует окончание отладочного обновления"]
     DebugUpdateDone {},
     /// Request debug state from the app
+    #[trans_doc = "ru:Запросить отладочное состояние приложения"]
     RequestDebugState {},
 }
 
 /// Message sent from server
+#[trans_doc = "ru:Сообщение отправляемое сервером"]
 #[derive(Serialize, Deserialize, Trans)]
 #[trans(no_generics_in_name)]
 pub enum ServerMessage<G: Game> {
     /// Get action for next tick
+    #[trans_doc = "ru:Получить действие для следующего тика"]
     GetAction {
         /// Player's view
+        #[trans_doc = "ru:Информация доступная игроку"]
         player_view: G::PlayerView,
     },
     /// Signifies end of the game
+    #[trans_doc = "ru:Сигнализирует конец игры"]
     Finish {},
     /// Debug update
+    #[trans_doc = "ru:Отладочное обновление"]
     DebugUpdate {
         /// Player's view
+        #[trans_doc = "ru:Информация доступная игроку"]
         player_view: G::PlayerView,
     },
 }
