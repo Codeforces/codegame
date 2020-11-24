@@ -1,7 +1,7 @@
 use super::*;
 
 /// Debug commands that can be sent while debugging with the app
-#[trans_doc = "ru:Команды могут быть отправлены приложению для помощи в отладке"]
+#[trans_doc = "ru:Команды, которые могут быть отправлены приложению для помощи в отладке"]
 #[derive(Serialize, Deserialize, Trans)]
 #[trans(no_generics_in_name)]
 pub enum DebugCommand<G: Game> {

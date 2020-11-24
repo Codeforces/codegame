@@ -1,6 +1,6 @@
 ## API description
 
-In language pack for your programming language you can find file named `MyStrategy/my_strategy.<ext>`.
+In language pack for your programming language you can find file named `MyStrategy.<ext>`/`my_strategy.<ext>`.
 This file contains class `MyStrategy` with `get_action` method, where your strategy's logic should be implemented.
 
 This method will be called each tick.
