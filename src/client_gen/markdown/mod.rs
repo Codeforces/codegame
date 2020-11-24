@@ -14,10 +14,10 @@ impl<G: Game> ClientGen<G> for trans_gen::GeneratorImpl<Generator> {
         gen.result().write_to(options.target_dir)?;
         Ok(())
     }
-    fn build_local(options: &Options) -> anyhow::Result<()> {
+    fn build_local(_options: &Options) -> anyhow::Result<()> {
         unreachable!();
     }
-    fn run_local(options: &Options) -> anyhow::Result<Command> {
+    fn run_local(_options: &Options) -> anyhow::Result<Command> {
         unreachable!();
     }
 }

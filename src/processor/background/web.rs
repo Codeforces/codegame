@@ -18,7 +18,7 @@ impl<G: Game> BackgroundGameProcessor<G> {
             debug_interface,
         }
     }
-    pub fn proceed(&mut self, mut max_ticks: usize) {
+    pub fn proceed(&mut self, max_ticks: usize) {
         for _ in 0..max_ticks {
             if !self.processor.finished() {
                 let events = self.processor.process_tick(self.debug_interface.as_ref());

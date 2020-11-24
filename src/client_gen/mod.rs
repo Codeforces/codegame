@@ -131,10 +131,10 @@ where
         ))?) as Box<_>];
         let processor = GameProcessor::new(None, default(), players);
         processor.run(Some(&DebugInterface {
-            debug_command_handler: Box::new(|player_index, command| {}),
-            debug_state: Box::new(|player_index| default()),
+            debug_command_handler: Box::new(|_player_index, _command| {}),
+            debug_state: Box::new(|_player_index| default()),
         }));
-        if let Err(e) = client_thread.join() {
+        if let Err(_error) = client_thread.join() {
             anyhow::bail!("Running client failed");
         }
     }

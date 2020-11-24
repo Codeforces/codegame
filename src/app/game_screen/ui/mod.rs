@@ -39,7 +39,8 @@ pub struct UI {
     fullscreen_button: FullscreenButton,
     timeline: Timeline,
     view_speed: ViewSpeedControl,
-    volume: VolumeControl,
+    #[allow(dead_code)]
+    volume: VolumeControl, // TODO: not dead
 }
 
 impl UI {

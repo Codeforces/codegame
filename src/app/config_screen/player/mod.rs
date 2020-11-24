@@ -57,6 +57,7 @@ impl<G: Game> PlayerConfigWidget<G> {
     pub fn create(&mut self) -> Box<dyn Player<G>> {
         self.current_config.get()
     }
+    #[cfg(not(target_arch = "wasm32"))]
     pub fn to_options(&self) -> G::PlayerOptions {
         self.current_config.to_options()
     }

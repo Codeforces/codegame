@@ -205,7 +205,7 @@ where
                     }
                     #[cfg(not(target_arch = "wasm32"))]
                     geng::Key::E if self.geng.window().is_key_pressed(geng::Key::LCtrl) => {
-                        save_file(translate("Save game state"), "game.td", |mut writer| {
+                        save_file(translate("Save game state"), "game.td", |writer| {
                             Trans::write_to(self.history.current_state().current.game, writer)
                         })
                         .expect("Failed to save game log");

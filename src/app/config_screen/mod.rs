@@ -43,9 +43,13 @@ struct Data<G: Game, R: Renderer<G>> {
     theme: Rc<ui::Theme>,
     preferences: Rc<RefCell<AutoSave<AppPreferences<R::Preferences>>>>,
     game_options_config: Box<dyn DeepConfig<G::OptionsPreset>>,
+    #[cfg(not(target_arch = "wasm32"))]
     game_state_path: Option<std::path::PathBuf>,
+    #[cfg(not(target_arch = "wasm32"))]
     game_state_path_button: ui::Button,
+    #[cfg(not(target_arch = "wasm32"))]
     save_button: ui::Button,
+    #[cfg(not(target_arch = "wasm32"))]
     replay_button: ui::Button,
     start_button: ui::Button,
     repeat_button: ui::Button,
@@ -75,6 +79,7 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
         }
 
         use ui::*;
+        #[cfg(not(target_arch = "wasm32"))]
         let options = self.full_options();
         let mut ready = true;
         for config in &mut self.player_configs {
@@ -270,11 +275,13 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
         None
     }
     fn game_init_config(&self) -> GameInitConfig<G> {
-        match &self.game_state_path {
-            Some(path) => GameInitConfig::LoadFrom(path.clone()),
-            None => GameInitConfig::Create(self.game_options_config.get()),
+        #[cfg(not(target_arch = "wasm32"))]
+        if let Some(path) = &self.game_state_path {
+            return GameInitConfig::LoadFrom(path.clone());
         }
+        GameInitConfig::Create(self.game_options_config.get())
     }
+    #[cfg(not(target_arch = "wasm32"))]
     fn full_options(&self) -> FullOptions<G> {
         FullOptions {
             seed: None,
@@ -317,12 +324,16 @@ impl<G: Game, R: Renderer<G>> ConfigScreen<G, R> {
         Self {
             data: Data {
                 theme: theme.clone(),
+                #[cfg(not(target_arch = "wasm32"))]
                 replay_button: ui::Button::new(),
+                #[cfg(not(target_arch = "wasm32"))]
                 save_button: ui::Button::new(),
                 start_button: ui::Button::new(),
                 repeat_button: ui::Button::new(),
                 game_options_config,
+                #[cfg(not(target_arch = "wasm32"))]
                 game_state_path: None,
+                #[cfg(not(target_arch = "wasm32"))]
                 game_state_path_button: ui::Button::new(),
                 player_count_range,
                 player_configs,

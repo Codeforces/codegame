@@ -38,7 +38,7 @@ impl<G: Game> ClientGen<G> for trans_gen::GeneratorImpl<Generator> {
         )?;
         Ok(())
     }
-    fn build_local(options: &Options) -> anyhow::Result<()> {
+    fn build_local(_options: &Options) -> anyhow::Result<()> {
         Ok(())
     }
     fn run_local(options: &Options) -> anyhow::Result<Command> {

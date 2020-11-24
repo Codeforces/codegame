@@ -19,6 +19,8 @@ impl VolumeControl {
         }
     }
 
+    // TODO should not be dead code
+    #[allow(dead_code)]
     pub fn ui<'a>(&'a mut self) -> impl ui::Widget + 'a {
         use ui::*;
         let value = &self.value;

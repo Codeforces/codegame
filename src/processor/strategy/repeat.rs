@@ -28,7 +28,7 @@ impl<G: Game> Repeat<G> {
 }
 
 impl<G: Game> GameProcessorStrategy<G> for Repeat<G> {
-    fn process_turn(&mut self, actions: HashMap<usize, G::Action>) -> Vec<G::Event> {
+    fn process_turn(&mut self, _actions: HashMap<usize, G::Action>) -> Vec<G::Event> {
         assert!(!self.finished());
         let events = Vec::<G::Event>::read_from(&mut self.reader).expect("Failed to read game log");
         let delta = G::Delta::read_from(&mut self.reader).expect("Failed to read game log");
