@@ -90,6 +90,7 @@ impl std::str::FromStr for TestMode {
 pub struct TestOptions {
     pub clean: bool,
     pub mode: TestMode,
+    pub host_from_docker: Option<String>,
 }
 
 pub fn test<G, CG>(
@@ -170,21 +171,27 @@ where
                     .arg("codegame-test")
                     .arg("sh")
                     .arg("run.sh");
-                let host = if cfg!(windows) {
-                    "host.docker.internal"
-                } else if std::env::var("CI").is_ok() {
-                    "build"
-                } else {
-                    "localhost"
-                };
-                command.arg(host).arg(PORT.to_string()).arg(TOKEN);
+                command
+                    .arg(
+                        test_options
+                            .host_from_docker
+                            .as_ref()
+                            .map(|host| host.as_str())
+                            .unwrap_or("localhost"),
+                    )
+                    .arg(PORT.to_string())
+                    .arg(TOKEN);
                 command.current_dir(options.target_dir);
                 command
             }
             _ => unreachable!(),
         };
         let client_player = TcpPlayer::<G>::new(TcpPlayerOptions {
-            host: None,
+            host: if test_options.host_from_docker.is_some() {
+                Some("0.0.0.0".to_owned())
+            } else {
+                None
+            },
             port: PORT,
             accept_timeout: Some(10.0),
             timeout: Some(10.0),
