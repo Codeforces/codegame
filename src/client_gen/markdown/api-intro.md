@@ -12,7 +12,7 @@ The method takes following arguments:
 
 The method should return the action you desire to perform this tick.
 
-For debugging purposes, there is also another method — `debug_update`, that has same parameters, and is called continiously while the app is running (not in batch mode).
+For debugging purposes, there is also another method — `debug_update`, that has same parameters, and is called continiously while the app is running (not in batch mode), if the client is waiting for the next tick. There will always be at least one debug update between ticks.
 
 ## Objects description
 
