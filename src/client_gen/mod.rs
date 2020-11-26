@@ -68,6 +68,8 @@ pub enum TestMode {
     Gen,
     Build,
     Run,
+    BuildDocker,
+    RunDocker,
 }
 
 impl std::str::FromStr for TestMode {
@@ -77,7 +79,9 @@ impl std::str::FromStr for TestMode {
             "gen" => Self::Gen,
             "build" => Self::Build,
             "run" => Self::Run,
-            _ => anyhow::bail!("Only gen | build | run"),
+            "build-docker" => Self::BuildDocker,
+            "run-docker" => Self::RunDocker,
+            _ => anyhow::bail!("Only gen | build[-docker] | run[-docker]"),
         })
     }
 }
@@ -111,13 +115,75 @@ where
         CG::build_local(options)?;
     }
 
-    if CG::RUNNABLE && matches!(test_options.mode, TestMode::Run) {
+    let docker_image = format!("codegame-test:{}", CG::NAME);
+
+    if CG::RUNNABLE
+        && matches!(
+            test_options.mode,
+            TestMode::BuildDocker | TestMode::RunDocker
+        )
+    {
+        info!("Building docker...");
+        command("docker")
+            .current_dir(options.target_dir)
+            .arg("build")
+            .arg("-t")
+            .arg(&docker_image)
+            .arg(".")
+            .run()?;
+        info!("Compiling base package...");
+        let mut child = command("docker build -t codegame-test -")
+            .stdin(std::process::Stdio::piped())
+            .spawn()?;
+        child.stdin.take().unwrap().write_all(
+            format!(
+                "FROM {}\nRUN mkdir /output && sh compile.sh base",
+                docker_image
+            )
+            .as_bytes(),
+        )?;
+        let status = child.wait()?;
+        if !status.success() {
+            anyhow::bail!("Process exited with {}", status);
+        }
+    }
+
+    if CG::RUNNABLE && matches!(test_options.mode, TestMode::Run | TestMode::RunDocker) {
         info!("Running...");
         const PORT: u16 = 31005;
         const TOKEN: &str = "CODEGAME_TOKEN";
-        let mut command = CG::run_local(options)?;
+        let mut command = match test_options.mode {
+            TestMode::Run => {
+                let mut command = CG::run_local(options)?;
+                command.arg("127.0.0.1").arg(PORT.to_string()).arg(TOKEN);
+                command
+            }
+            TestMode::RunDocker => {
+                let mut command = command("docker");
+                command
+                    .arg("run")
+                    .arg("--rm")
+                    .arg("--name")
+                    .arg("codegame-test")
+                    .arg("--network")
+                    .arg("host")
+                    .arg("codegame-test")
+                    .arg("sh")
+                    .arg("run.sh");
+                let host = if cfg!(windows) {
+                    "host.docker.internal"
+                } else if std::env::var("CI").is_ok() {
+                    "build"
+                } else {
+                    "localhost"
+                };
+                command.arg(host).arg(PORT.to_string()).arg(TOKEN);
+                command.current_dir(options.target_dir);
+                command
+            }
+            _ => unreachable!(),
+        };
         let client_thread = std::thread::spawn(move || {
-            command.arg("127.0.0.1").arg(PORT.to_string()).arg(TOKEN);
             command.run().expect("Running client failed");
         });
         let players = vec![Box::new(futures::executor::block_on(TcpPlayer::<G>::new(
