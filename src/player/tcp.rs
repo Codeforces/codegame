@@ -17,18 +17,19 @@ pub struct TcpPlayerOptions {
 impl<G: Game> TcpPlayer<G> {
     pub fn new(options: TcpPlayerOptions) -> impl Future<Output = Result<Self, std::io::Error>> {
         let (sender, receiver) = futures::channel::oneshot::channel();
+        let listener_result = std::net::TcpListener::bind((
+            options
+                .host
+                .as_ref()
+                .map(|host| host.as_str())
+                .unwrap_or("127.0.0.1"),
+            options.port,
+        ));
         std::thread::spawn(move || {
             let result = {
                 let sender = &sender;
                 let f = move || -> Result<Self, std::io::Error> {
-                    let listener = std::net::TcpListener::bind((
-                        options
-                            .host
-                            .as_ref()
-                            .map(|host| host.as_str())
-                            .unwrap_or("127.0.0.1"),
-                        options.port,
-                    ))?;
+                    let listener = listener_result?;
                     listener.set_nonblocking(true)?;
                     info!("Waiting for connection on port {}", options.port);
                     let timer = Timer::new();
