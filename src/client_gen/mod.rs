@@ -183,18 +183,17 @@ where
             }
             _ => unreachable!(),
         };
+        let client_player = TcpPlayer::<G>::new(TcpPlayerOptions {
+            host: None,
+            port: PORT,
+            accept_timeout: Some(10.0),
+            timeout: Some(10.0),
+            token: Some(TOKEN.to_owned()),
+        });
         let client_thread = std::thread::spawn(move || {
             command.run().expect("Running client failed");
         });
-        let players = vec![Box::new(futures::executor::block_on(TcpPlayer::<G>::new(
-            TcpPlayerOptions {
-                host: None,
-                port: PORT,
-                accept_timeout: Some(10.0),
-                timeout: Some(10.0),
-                token: Some(TOKEN.to_owned()),
-            },
-        ))?) as Box<_>];
+        let players = vec![Box::new(futures::executor::block_on(client_player)?) as Box<_>];
         let processor = GameProcessor::new(None, default(), players);
         processor.run(Some(&DebugInterface {
             debug_command_handler: Box::new(|_player_index, _command| {}),
