@@ -25,13 +25,15 @@ impl<G: Game> TcpPlayer<G> {
                 .unwrap_or("127.0.0.1"),
             options.port,
         ));
+        if listener_result.is_ok() {
+            info!("Waiting for connection on port {}", options.port);
+        }
         std::thread::spawn(move || {
             let result = {
                 let sender = &sender;
                 let f = move || -> Result<Self, std::io::Error> {
                     let listener = listener_result?;
                     listener.set_nonblocking(true)?;
-                    info!("Waiting for connection on port {}", options.port);
                     let timer = Timer::new();
                     while !sender.is_canceled() {
                         if let Some(time) = options.accept_timeout {
