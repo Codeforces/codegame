@@ -1,6 +1,6 @@
 [package]
 name = "codegame"
-version = "0.7.0-alpha.35"
+version = "0.7.0-alpha.36"
 authors = ["kuviman <kuviman@gmail.com>"]
 description = "CodeGame framework"
 license = "MIT"

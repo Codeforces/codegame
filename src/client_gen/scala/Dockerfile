@@ -1,4 +1,4 @@
-FROM maven:3-jdk-8
+FROM maven
 
 COPY . /project
 WORKDIR /project
