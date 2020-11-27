@@ -9,6 +9,6 @@ if [ "$1" != "base" ]; then
     fi
 fi
 
-cmake -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_VERBOSE_MAKEFILE=ON .
+cmake -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_VERBOSE_MAKEFILE=ON .
 cmake --build . --config Release
 cp project_name /output/
