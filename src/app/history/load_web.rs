@@ -48,7 +48,7 @@ impl<G: Game, T: RendererData<G>> History<G, T> {
             let handler = wasm_bindgen::closure::Closure::wrap(
                 Box::new(handler) as Box<dyn FnMut(web_sys::ProgressEvent)>
             );
-            xhr.add_event_listener_with_callback("progress", handler.as_ref().unchecked_ref())
+            xhr.add_event_listener_with_callback("load", handler.as_ref().unchecked_ref())
                 .unwrap();
             handler.forget(); // TODO: not forget
             Ok(receiver.map(|result| result.expect("Failed to load replay")))
