@@ -1,4 +1,4 @@
-FROM maven
+FROM maven:3-openjdk-15
 
 COPY . /project
 WORKDIR /project
