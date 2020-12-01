@@ -198,7 +198,9 @@ where
             token: Some(TOKEN.to_owned()),
         });
         let client_thread = std::thread::spawn(move || {
+            let start_time = std::time::Instant::now();
             command.run().expect("Running client failed");
+            std::time::Instant::now().duration_since(start_time)
         });
         let players = vec![Box::new(futures::executor::block_on(client_player)?) as Box<_>];
         let processor = GameProcessor::new(None, default(), players);
@@ -206,8 +208,9 @@ where
             debug_command_handler: Box::new(|_player_index, _command| {}),
             debug_state: Box::new(|_player_index| default()),
         }));
-        if let Err(_error) = client_thread.join() {
-            anyhow::bail!("Running client failed");
+        match client_thread.join() {
+            Ok(duration) => info!("Client running time: {} ms", duration.as_millis()),
+            Err(_e) => anyhow::bail!("Running client failed"),
         }
     }
     info!("Success");
