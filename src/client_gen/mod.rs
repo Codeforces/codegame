@@ -24,7 +24,7 @@ pub struct Options<'a> {
 pub trait ClientGen<G: Game> {
     const NAME: &'static str;
     const RUNNABLE: bool;
-    type GenOptions;
+    type GenOptions: Debug + Default;
     fn gen(options: &Options, gen_options: Self::GenOptions) -> anyhow::Result<()>;
     fn build_local(options: &Options) -> anyhow::Result<()>;
     fn run_local(options: &Options) -> anyhow::Result<Command>;
@@ -105,7 +105,7 @@ where
     G::Options: Default,
     G::DebugState: Default,
 {
-    info!("Generating {}", CG::NAME);
+    info!("Generating {} with options {:#?}", CG::NAME, gen_options);
     CG::gen(options, gen_options)?;
     for (path, contents) in extra_files {
         std::fs::write(options.target_dir.join(path), contents)?;
