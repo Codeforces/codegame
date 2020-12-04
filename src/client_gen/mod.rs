@@ -103,6 +103,7 @@ where
     G: Game,
     CG: ClientGen<G>,
     G::Options: Default,
+    G::Action: Default,
     G::DebugState: Default,
 {
     info!("Generating {} with options {:#?}", CG::NAME, gen_options);
@@ -202,7 +203,10 @@ where
             command.run().expect("Running client failed");
             std::time::Instant::now().duration_since(start_time)
         });
-        let players = vec![Box::new(futures::executor::block_on(client_player)?) as Box<_>];
+        let players = vec![
+            Box::new(futures::executor::block_on(client_player)?) as Box<_>,
+            Box::new(EmptyPlayer) as Box<_>,
+        ];
         let processor = GameProcessor::new(None, default(), players);
         processor.run(Some(&DebugInterface {
             debug_command_handler: Box::new(|_player_index, _command| {}),
@@ -227,6 +231,7 @@ pub fn test_all<G>(
 where
     G: Game,
     G::Options: Default,
+    G::Action: Default,
     G::DebugState: Default,
 {
     macro_rules! test {
