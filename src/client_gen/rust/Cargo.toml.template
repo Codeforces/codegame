@@ -6,3 +6,5 @@ edition = "2018"
 [dependencies]
 model = { path = "model", package = "project_name-model" }
 trans = "$trans-version"
+rand = "0.7.3"
+chrono = "0.4.19"
