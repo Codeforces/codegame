@@ -128,7 +128,7 @@ where
         }
 
         if let Some(processor) = &mut self.processor {
-            processor.proceed({
+            processor.proceed(Some(self.history.current_state().current.game), {
                 let tick_needed = self.current_tick.ceil() as usize;
                 if tick_needed >= history_len {
                     tick_needed - history_len + 1

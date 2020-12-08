@@ -101,11 +101,17 @@ impl<G: Game + 'static> GameProcessor<G> {
         self.results_handler = Some(handler);
     }
 
-    pub(crate) fn debug_update(&mut self, debug_interface: &DebugInterface<G>) {
+    pub(crate) fn debug_update(
+        &mut self,
+        game_state: Option<&G>,
+        debug_interface: &DebugInterface<G>,
+    ) {
         for (index, player_cell) in self.players.iter_mut().enumerate() {
             if let Some(player) = player_cell {
                 if let Err(e) = player.debug_update(
-                    &self.strategy.game().player_view(index),
+                    &game_state
+                        .unwrap_or(self.strategy.game())
+                        .player_view(index),
                     &debug_interface.for_player(index, true),
                 ) {
                     *player_cell = None;
@@ -188,7 +194,7 @@ impl<G: Game + 'static> GameProcessor<G> {
         while !self.finished() {
             self.process_tick(debug_interface);
             if let Some(debug_interface) = debug_interface {
-                self.debug_update(debug_interface);
+                self.debug_update(None, debug_interface);
             }
         }
     }
