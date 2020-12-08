@@ -209,7 +209,7 @@ where
         ];
         let processor = GameProcessor::new(None, default(), players);
         processor.run(Some(&DebugInterface {
-            debug_command_handler: Box::new(|_player_index, _command| {}),
+            debug_command_handler: Box::new(|_player_index, _global, _command| {}),
             debug_state: Box::new(|_player_index| default()),
         }));
         match client_thread.join() {

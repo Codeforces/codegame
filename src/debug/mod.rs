@@ -15,17 +15,24 @@ pub enum DebugCommand<G: Game> {
     /// Clear current tick's debug data
     #[trans_doc = "ru:Очистить отладочные данные текущего тика"]
     Clear,
+    // Enable/disable auto performing of commands
+    #[trans_doc = "ru:Включить/выключить автоматическое выполнение команд"]
+    SetAutoFlush { enable: bool },
+    // Perform all previously sent commands
+    #[trans_doc = "ru:Выполнить все присланные ранее команды"]
+    Flush,
 }
 
 pub struct DebugInterface<G: Game> {
-    pub(crate) debug_command_handler: Box<dyn Fn(usize, DebugCommand<G>) + Send>,
+    pub(crate) debug_command_handler: Box<dyn Fn(usize, bool, DebugCommand<G>) + Send>,
     pub(crate) debug_state: Box<dyn Fn(usize) -> G::DebugState + Send>,
 }
 
 impl<G: Game> DebugInterface<G> {
-    pub fn for_player(&self, player_index: usize) -> PlayerDebugInterface<G> {
+    pub fn for_player(&self, player_index: usize, global: bool) -> PlayerDebugInterface<G> {
         PlayerDebugInterface {
             player_index,
+            global,
             debug_interface: self,
         }
     }
@@ -33,12 +40,13 @@ impl<G: Game> DebugInterface<G> {
 
 pub struct PlayerDebugInterface<'a, G: Game> {
     player_index: usize,
+    global: bool,
     debug_interface: &'a DebugInterface<G>,
 }
 
 impl<G: Game> PlayerDebugInterface<'_, G> {
     pub fn send(&self, command: DebugCommand<G>) {
-        (self.debug_interface.debug_command_handler)(self.player_index, command);
+        (self.debug_interface.debug_command_handler)(self.player_index, self.global, command);
     }
     pub fn state(&self) -> G::DebugState {
         (self.debug_interface.debug_state)(self.player_index)

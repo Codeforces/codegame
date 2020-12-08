@@ -123,11 +123,60 @@ impl<T: Diff> Window<HistorySnapshot<T>> {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct DebugDataStorage<G: Game> {
+    queued: Vec<G::DebugData>,
+    cleared: bool,
+    current: Vec<G::DebugData>,
+    auto_flush: bool,
+}
+
+impl<'a, G: Game> IntoIterator for &'a DebugDataStorage<G> {
+    type Item = &'a G::DebugData;
+    type IntoIter = <&'a Vec<G::DebugData> as IntoIterator>::IntoIter;
+    fn into_iter(self) -> Self::IntoIter {
+        self.current.iter()
+    }
+}
+
+impl<G: Game> DebugDataStorage<G> {
+    fn new() -> Self {
+        Self {
+            queued: Vec::new(),
+            cleared: false,
+            current: Vec::new(),
+            auto_flush: true,
+        }
+    }
+    fn handle(&mut self, command: DebugCommand<G>) {
+        match command {
+            DebugCommand::Add { data } => self.queued.push(data),
+            DebugCommand::Clear => {
+                self.cleared = true;
+                self.queued.clear();
+            }
+            DebugCommand::SetAutoFlush { enable } => self.auto_flush = enable,
+            DebugCommand::Flush => self.flush(),
+        }
+        if self.auto_flush {
+            self.flush();
+        }
+    }
+    fn flush(&mut self) {
+        if self.cleared {
+            self.cleared = false;
+            self.current.clear();
+        }
+        self.current.extend(self.queued.drain(..));
+    }
+}
+
 struct HistorySharedState<G: Game, T: RendererData<G>> {
     game: DiffHistory<G>,
     renderer_data: DiffHistory<T>,
-    last_debug_data: HashMap<usize, Vec<G::DebugData>>,
-    debug_data: Vec<Arc<HashMap<usize, Vec<G::DebugData>>>>,
+    global_debug_data: HashMap<usize, DebugDataStorage<G>>,
+    last_debug_data: HashMap<usize, DebugDataStorage<G>>,
+    debug_data: Vec<Arc<HashMap<usize, DebugDataStorage<G>>>>,
     events: Vec<Arc<Vec<G::Event>>>,
 }
 
@@ -138,6 +187,7 @@ impl<G: Game, T: RendererData<G>> HistorySharedState<G, T> {
             game: DiffHistory::new(initial_game),
             renderer_data: DiffHistory::new(initial_renderer_data),
             last_debug_data: HashMap::new(),
+            global_debug_data: HashMap::new(),
             debug_data: Vec::new(),
             events: Vec::new(),
         }
@@ -153,15 +203,22 @@ impl<G: Game, T: RendererData<G>> HistorySharedState<G, T> {
             HashMap::new(),
         )));
     }
-    fn handle_debug_command(&mut self, player_index: usize, command: DebugCommand<G>) {
-        if !self.last_debug_data.contains_key(&player_index) {
-            self.last_debug_data.insert(player_index, Vec::new());
+    fn handle_debug_command(
+        &mut self,
+        player_index: usize,
+        global: bool,
+        command: DebugCommand<G>,
+    ) {
+        let data = if global {
+            &mut self.global_debug_data
+        } else {
+            &mut self.last_debug_data
+        };
+        if !data.contains_key(&player_index) {
+            data.insert(player_index, DebugDataStorage::new());
         }
-        let player_data = self.last_debug_data.get_mut(&player_index).unwrap();
-        match command {
-            DebugCommand::Add { data } => player_data.push(data),
-            DebugCommand::Clear {} => player_data.clear(),
-        }
+        let player_data = data.get_mut(&player_index).unwrap();
+        player_data.handle(command);
     }
     fn len(&self) -> usize {
         self.game.len()
@@ -172,7 +229,7 @@ pub struct History<G: Game, T: RendererData<G>> {
     shared_state: Arc<Mutex<HistorySharedState<G, T>>>,
     game: Window<HistorySnapshot<G>>,
     renderer_data: Window<HistorySnapshot<T>>,
-    debug_data: Window<Arc<HashMap<usize, Vec<G::DebugData>>>>,
+    debug_data: Window<Arc<HashMap<usize, DebugDataStorage<G>>>>,
     debug_data_timer: Timer,
     prev_events: Arc<Vec<G::Event>>,
     current_tick_time: f64,
@@ -222,6 +279,7 @@ impl<G: Game, T: RendererData<G>> History<G, T> {
                 }),
                 _ => None,
             },
+            global_debug_data: self.shared_state.lock().unwrap().global_debug_data.clone(),
             t: self.current_tick_time + 1.0 - self.current_tick_time.ceil(),
             prev_events: &self.prev_events,
         }
@@ -298,13 +356,13 @@ impl<G: Game, T: RendererData<G>> History<G, T> {
             shared_state.lock().unwrap().push(game.clone(), events);
         }
     }
-    pub fn debug_command_handler(&self) -> impl Fn(usize, DebugCommand<G>) + Send + 'static {
+    pub fn debug_command_handler(&self) -> impl Fn(usize, bool, DebugCommand<G>) + Send + 'static {
         let shared_state = self.shared_state.clone();
-        move |player_index, command| {
+        move |player_index, global, command| {
             shared_state
                 .lock()
                 .unwrap()
-                .handle_debug_command(player_index, command);
+                .handle_debug_command(player_index, global, command);
         }
     }
 }

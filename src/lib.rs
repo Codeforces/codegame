@@ -189,13 +189,14 @@ pub trait RendererData<G: Game>: Diff {
 pub struct CurrentRenderState<'a, G: Game, T: RendererData<G>> {
     pub game: &'a G,
     pub renderer_data: &'a T,
-    pub debug_data: &'a HashMap<usize, Vec<G::DebugData>>,
+    pub debug_data: &'a HashMap<usize, DebugDataStorage<G>>,
 }
 
 #[cfg(feature = "rendering")]
 pub struct RenderState<'a, G: Game, T: RendererData<G>> {
     pub current: CurrentRenderState<'a, G, T>,
     pub prev: Option<CurrentRenderState<'a, G, T>>,
+    pub global_debug_data: HashMap<usize, DebugDataStorage<G>>,
     pub t: f64,
     pub prev_events: &'a [G::Event],
 }

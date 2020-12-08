@@ -106,7 +106,7 @@ impl<G: Game + 'static> GameProcessor<G> {
             if let Some(player) = player_cell {
                 if let Err(e) = player.debug_update(
                     &self.strategy.game().player_view(index),
-                    &debug_interface.for_player(index),
+                    &debug_interface.for_player(index, true),
                 ) {
                     *player_cell = None;
                     warn!("Player error: {}", e);
@@ -136,7 +136,7 @@ impl<G: Game + 'static> GameProcessor<G> {
                         player.get_action(
                             &view,
                             debug_interface
-                                .map(|debug_interface| debug_interface.for_player(index))
+                                .map(|debug_interface| debug_interface.for_player(index, false))
                                 .as_ref(),
                         ),
                     )
