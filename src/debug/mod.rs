@@ -15,10 +15,10 @@ pub enum DebugCommand<G: Game> {
     /// Clear current tick's debug data
     #[trans_doc = "ru:Очистить отладочные данные текущего тика"]
     Clear,
-    // Enable/disable auto performing of commands
+    /// Enable/disable auto performing of commands
     #[trans_doc = "ru:Включить/выключить автоматическое выполнение команд"]
     SetAutoFlush { enable: bool },
-    // Perform all previously sent commands
+    /// Perform all previously sent commands
     #[trans_doc = "ru:Выполнить все присланные ранее команды"]
     Flush,
 }
