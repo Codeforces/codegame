@@ -128,6 +128,7 @@ pub struct DebugDataStorage<G: Game> {
     queued: Vec<G::DebugData>,
     cleared: bool,
     current: Vec<G::DebugData>,
+    ready: bool,
     auto_flush: bool,
 }
 
@@ -146,6 +147,7 @@ impl<G: Game> DebugDataStorage<G> {
             cleared: false,
             current: Vec::new(),
             auto_flush: true,
+            ready: false,
         }
     }
     fn handle(&mut self, command: DebugCommand<G>) {
@@ -168,6 +170,7 @@ impl<G: Game> DebugDataStorage<G> {
             self.current.clear();
         }
         self.current.extend(self.queued.drain(..));
+        self.ready = true;
     }
 }
 
@@ -318,7 +321,10 @@ impl<G: Game, T: RendererData<G>> History<G, T> {
         } else {
             if tick > 0
                 && self.debug_data_timer.elapsed() < 0.5
-                && shared_state.last_debug_data.is_empty()
+                && shared_state
+                    .last_debug_data
+                    .values()
+                    .all(|debug_data| !debug_data.ready)
             {
                 self.debug_data = Window {
                     current: shared_state.debug_data[tick - 1].clone(),
