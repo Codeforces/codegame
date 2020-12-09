@@ -17,7 +17,11 @@ pub enum DebugCommand<G: Game> {
     Clear,
     /// Enable/disable auto performing of commands
     #[trans_doc = "ru:Включить/выключить автоматическое выполнение команд"]
-    SetAutoFlush { enable: bool },
+    SetAutoFlush {
+        /// Enable/disable autoflush
+        #[trans_doc = "ru:Включить/выключить автоматическое выполнение"]
+        enable: bool,
+    },
     /// Perform all previously sent commands
     #[trans_doc = "ru:Выполнить все присланные ранее команды"]
     Flush,
