@@ -49,7 +49,7 @@ impl<G: Game> From<GameInitConfig<G>> for GameInitOptions<G> {
     fn from(config: GameInitConfig<G>) -> Self {
         match config {
             GameInitConfig::LoadFrom(path) => Self::Ready(
-                Trans::read_from(&mut std::fs::read(path).expect("Failed to read file").as_slice())
+                serde_json::from_reader(std::fs::File::open(path).expect("Failed to read file"))
                     .expect("Failed to parse file"),
             ),
             GameInitConfig::Create(preset) => Self::New(preset.into()),

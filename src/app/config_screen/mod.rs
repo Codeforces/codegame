@@ -77,6 +77,10 @@ impl<G: Game, R: Renderer<G>> Data<G, R> {
                 self.player_configs.pop();
             }
         }
+        #[cfg(not(target_arch = "wasm32"))]
+        if self.game_state_path_button.clicked() {
+            self.game_state_path = select_file("Load game state");
+        }
 
         use ui::*;
         #[cfg(not(target_arch = "wasm32"))]
