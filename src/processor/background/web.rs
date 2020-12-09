@@ -18,7 +18,7 @@ impl<G: Game> BackgroundGameProcessor<G> {
             debug_interface,
         }
     }
-    pub fn proceed(&mut self, max_ticks: usize) {
+    pub fn proceed(&mut self, debug_game_state: Option<&G>, max_ticks: usize) {
         for _ in 0..max_ticks {
             if !self.processor.finished() {
                 let events = self.processor.process_tick(self.debug_interface.as_ref());
@@ -26,7 +26,8 @@ impl<G: Game> BackgroundGameProcessor<G> {
             }
         }
         if let Some(debug_interface) = &self.debug_interface {
-            self.processor.debug_update(debug_interface);
+            self.processor
+                .debug_update(debug_game_state, debug_interface);
         }
     }
     pub fn player_count(&self) -> usize {
