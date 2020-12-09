@@ -22,30 +22,30 @@ impl<G: Game> BackgroundGameProcessor<G> {
         let thread = std::thread::spawn({
             let ticks_to_process = ticks_to_process.clone();
             let debug_game_state = debug_game_state.clone();
-            move || {
-                'thread_loop: while !processor.finished() {
-                    loop {
-                        let ticks = ticks_to_process.load(Ordering::SeqCst);
-                        if ticks < 0 {
-                            break 'thread_loop;
-                        }
-                        if ticks > 0
-                            && ticks_to_process.compare_and_swap(ticks, ticks - 1, Ordering::SeqCst)
-                                == ticks
-                        {
+            move || 'thread_loop: loop {
+                loop {
+                    let ticks = ticks_to_process.load(Ordering::SeqCst);
+                    if ticks < 0 {
+                        break 'thread_loop;
+                    }
+                    if let Some(debug_interface) = &debug_interface {
+                        processor.debug_update(
+                            debug_game_state.lock().unwrap().as_ref(),
+                            debug_interface,
+                        );
+                    }
+                    if ticks > 0
+                        && ticks_to_process.compare_and_swap(ticks, ticks - 1, Ordering::SeqCst)
+                            == ticks
+                    {
+                        if !processor.finished() {
                             let events = processor.process_tick(debug_interface.as_ref());
                             tick_handler(processor.game(), events);
                             ticks_to_process.fetch_min(ticks - 1, Ordering::SeqCst);
-                            break;
                         }
-                        if let Some(debug_interface) = &debug_interface {
-                            processor.debug_update(
-                                debug_game_state.lock().unwrap().as_ref(),
-                                debug_interface,
-                            );
-                        }
-                        std::thread::park();
+                        break;
                     }
+                    std::thread::park();
                 }
             }
         });
