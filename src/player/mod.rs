@@ -6,7 +6,7 @@ mod tcp;
 pub use stream::*;
 pub use tcp::*;
 
-#[derive(Debug, Error)]
+#[derive(Debug, thiserror::Error)]
 pub enum PlayerError {
     #[error("IO error: {0}")]
     IOError(#[from] std::io::Error),

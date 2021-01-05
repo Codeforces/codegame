@@ -40,19 +40,14 @@ impl TimeLabel {
     }
 }
 
+#[derive(Deref)]
 pub struct Timeline {
+    #[deref]
     slider: ui::Slider,
     label: TimeLabel,
     time: f64,
     max_time: f64,
     ticks_per_second: f64,
-}
-
-impl Deref for Timeline {
-    type Target = ui::Slider;
-    fn deref(&self) -> &ui::Slider {
-        &self.slider
-    }
 }
 
 impl Timeline {
