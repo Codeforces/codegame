@@ -9,7 +9,7 @@
     <name>project_name</name>
 
     <properties>
-        <kotlin.version>1.4.20</kotlin.version>
+        <kotlin.version>1.6.0</kotlin.version>
         <graalvm.version>20.2.0</graalvm.version>
         <main.class>Runner</main.class>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
